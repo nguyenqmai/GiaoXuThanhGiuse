@@ -1,0 +1,21 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+    group = 'com.themais'
+    version = '0.0.1-SNAPSHOT'
+}
+

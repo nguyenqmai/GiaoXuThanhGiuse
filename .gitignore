@@ -1,0 +1,27 @@
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+my-first-project0123-firebase-adminsdk-pjw6z-d05f5c55b5.json
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/

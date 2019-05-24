@@ -1,0 +1,3 @@
+rootProject.name = 'GiaoXuThanhGiuse'
+include 'Client'
+include 'Server'

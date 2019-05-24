@@ -1,0 +1,38 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>
+            Settings
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-list lines="full">
+
+        <ion-item>
+            <ion-button expand="full" fill="solid" (click)="saveSubscriptions()">Save all changes</ion-button>
+        </ion-item>
+
+        <ion-item-group *ngFor="let group of getTopicGroups()">
+            <ion-item-divider (click)="tongleGroupExpansion(group)">
+                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
+                <ion-label>{{group.name}}</ion-label>
+                <!-- <ion-checkbox slot="end" color="primary" [(ngModel)]="group.status" (ionChange)="checkboxGroupClicked(group)"></ion-checkbox> -->
+                <ion-toggle slot="end" color="primary" [(ngModel)]="group.status"
+                            (ngModelChange)="checkboxGroupClicked(group)"></ion-toggle>
+            </ion-item-divider>
+
+            <div *ngIf="group.expanded">
+                <ion-item *ngFor="let item of group.subItems">
+                    <ion-label padding-start margin-start>{{item.name}}</ion-label>
+                    <!-- <ion-checkbox  margin-end slot="end" color="secondary" [(ngModel)]="item.status" (ionChange)="checkboxItemClicked(group, item)"></ion-checkbox> -->
+                    <ion-toggle margin-end slot="end" color="secondary" [(ngModel)]="item.status"
+                                (ngModelChange)="checkboxItemClicked(group, item)"></ion-toggle>
+                </ion-item>
+            </div>
+        </ion-item-group>
+
+    </ion-list>
+
+
+</ion-content>

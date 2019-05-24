@@ -1,0 +1,20 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>
+            Received Notifications
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-list lines="full">
+        <ion-item *ngFor="let fcmNotification of getAllNotifications()">
+            <ion-label text-wrap>
+                <h2>{{fcmNotification.receivedTime}}</h2>
+                <h4>{{fcmNotification.title}}</h4>
+            </ion-label>
+            <div class="item-note" slot="end">{{fcmNotification.label}}</div>
+            <ion-badge margin-end slot="end" color="secondary">{{fcmNotification.body}}</ion-badge>
+        </ion-item>
+    </ion-list>
+</ion-content>

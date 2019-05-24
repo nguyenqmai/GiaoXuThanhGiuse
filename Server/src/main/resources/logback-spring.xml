@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="folder" source="log.folder"/>
+    <springProperty scope="context" name="name" source="log.name"/>
+    <springProperty scope="context" name="rootLevel" source="log.rootLevel"/>
+    <springProperty scope="context" name="overridePackage" source="log.overridePackage"/>
+    <springProperty scope="context" name="overrideLevel" source="log.overrideLevel"/>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <prudent>true</prudent>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+            <!-- daily rollover -->
+            <fileNamePattern>${folder}/${name}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>300MB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <root level="${rootLevel}">
+        <appender-ref ref="ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <springProfile name="local">
+        <root level="${rootLevel}">
+            <appender-ref ref="STDOUT" />
+        </root>
+        <logger name="${overridePackage}" level="${overrideLevel}" additivity="false">
+            <appender-ref ref="STDOUT"/>
+        </logger>
+    </springProfile>
+
+    <logger name="${overridePackage}" level="${overrideLevel}" additivity="false">
+        <appender-ref ref="ROLLING" />
+    </logger>
+
+    <springProfile name="local">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d [%thread] %-5level %logger{35} %M - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+</configuration>
+
