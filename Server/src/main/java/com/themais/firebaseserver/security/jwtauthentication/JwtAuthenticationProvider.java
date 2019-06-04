@@ -48,7 +48,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             if (usernameClaim.isNull() || usernameClaim.asString().isEmpty()) {
                 logger.warn("Principal's name value is NULL or empty for token's field [{}], using token's subject's value", jwtTokenPrincipalNameField);
             } else {
-                 principalName = rawAccessToken.getClaim(jwtTokenPrincipalNameField).asString();
+                principalName = rawAccessToken.getClaim(jwtTokenPrincipalNameField).asString();
             }
         }
         logger.debug("Collected {} GrantedAuthority objs for principle [{}]", authorities.size(), principalName);

@@ -1,4 +1,4 @@
-package com.themais.firebaseserver.controller;
+package com.themais.firebaseserver.web;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

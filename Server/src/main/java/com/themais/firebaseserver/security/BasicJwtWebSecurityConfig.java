@@ -64,7 +64,7 @@ public abstract class BasicJwtWebSecurityConfig extends WebSecurityConfigurerAda
 
     @Value("${app.jwt.TOKEN_PUBLIC_KEY_FILE}")
     private String JWT_TOKEN_PUBLIC_KEY_FILE;
-    
+
     @Value("${app.jwt.TOKEN_HEADER_PARAM}")
     private String JWT_TOKEN_HEADER_PARAM;
     @Value("${app.jwt.TOKEN_HEADER_PREFIX}")
@@ -259,8 +259,6 @@ public abstract class BasicJwtWebSecurityConfig extends WebSecurityConfigurerAda
             throw e;
         }
     }
-
-
 
 
 }

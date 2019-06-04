@@ -14,12 +14,13 @@ public class BaseMessage {
     @Exclude
     private String id;
     private Timestamp creationTime;
-    private boolean processed;
+    private Status status;
     private String topic;
     private String title;
     private String body;
 
     private Map<String, String> data;
+    private String exceptionDetail;
 
     @Exclude
     public String getId() {
@@ -29,5 +30,9 @@ public class BaseMessage {
     @Exclude
     public void setId(String id) {
         this.id = id;
+    }
+
+    public enum Status {
+        NEW, PROCESSED_SUCCESSFULLY, EXCEPTION
     }
 }

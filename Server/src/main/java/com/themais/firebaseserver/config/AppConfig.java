@@ -9,7 +9,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +21,10 @@ import java.io.IOException;
  */
 @Data
 @Configuration
+@ComponentScan(basePackages = "com.themais.firebaseserver")
+@EnableScheduling
 @ConfigurationProperties(prefix = "app")
+
 public class AppConfig {
     String adminServiceAccountKeyFile;
     int value;
@@ -27,7 +32,7 @@ public class AppConfig {
     @Bean
     public FirebaseApp getFirebaseApp() throws IOException {
 
-        try(FileInputStream serviceAccount = new FileInputStream(adminServiceAccountKeyFile)) {
+        try (FileInputStream serviceAccount = new FileInputStream(adminServiceAccountKeyFile)) {
 
             ServiceAccountCredentials serviceAccountInfo = ServiceAccountCredentials.fromStream(serviceAccount);
             FirebaseOptions options = new FirebaseOptions.Builder()
