@@ -48,7 +48,7 @@ export class AppComponent {
         this.fcm.onNotificationOpen().subscribe((msg: any) => {
             console.log('got msg inside app.components.ts ' + JSON.stringify(msg));
             this.fcm.saveNotification(msg);
-            this.presentToast(JSON.stringify(msg));
+            // this.presentToast(JSON.stringify(msg));
         });
     }
 

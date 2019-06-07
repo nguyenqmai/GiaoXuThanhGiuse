@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.themais.firebaseserver.model.BaseMessage;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import java.io.StringWriter;
 @Service
 public class NotificationService {
     static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
-
+    static final FastDateFormat dateFormatter = FastDateFormat.getInstance("yyyy-MM-dd hh:mm:ss");
     @Autowired
     FireStorageService fireStorageService;
 
@@ -28,6 +29,7 @@ public class NotificationService {
 
     @Scheduled(cron = "${cron.expression}")
     void processNewBaseMessages() {
+        logger.info("Processing new base message ... {}", dateFormatter.format(System.currentTimeMillis()));
         for (BaseMessage msg : fireStorageService.getBaseMessages(null, BaseMessage.Status.NEW)) {
             try {
                 if (msg.getTopic() == null)
