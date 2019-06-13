@@ -30,7 +30,7 @@ public class NotificationController {
 
     @PostMapping("/topics/")
     boolean addNewTopic(@RequestBody TopicNode newTopic) {
-        return fireStorageService.addNewTopic(newTopic);
+        return fireStorageService.upsertTopic(newTopic);
     }
 
 

@@ -11,6 +11,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "abcd": "npm rebuild node-sass",
+    "ionic_resource": "ionic cordova resources",
     "android_build": "ionic cordova  build android --prod",
     "android_run": "ionic cordova  run android --prod --device",
     "android_emulate": "ionic cordova  emulate android --prod",

@@ -1,12 +1,12 @@
 import {Component} from '@angular/core';
+import {OverlayEventDetail} from '@ionic/core';
 import {Platform, ToastController} from '@ionic/angular';
 
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
-
-
+import {AlertController } from '@ionic/angular';
 import {FcmService} from './services/fcm.service';
-import {FcmNotification} from './model/fcmnotification.model';
+import { NGXLogger } from 'ngx-logger';
 
 @Component({
     selector: 'app-root',
@@ -17,17 +17,23 @@ export class AppComponent {
 
     constructor(
         private platform: Platform,
-        private splashScreen: SplashScreen,
         private statusBar: StatusBar,
         private fcm: FcmService,
-        private toastController: ToastController
+        private splashScreen: SplashScreen,
+        private alertController: AlertController,
+        private toastController: ToastController, 
+        private logger: NGXLogger
     ) {
         this.initializeApp();
     }
 
     initializeApp() {
         this.platform.ready().then(() => {
-            this.statusBar.styleDefault();
+            if(this.platform.is('android')) {
+                this.androidSetup();
+            } else {
+                this.statusBar.styleDefault();
+            }
             this.splashScreen.hide();
             this.notificationSetup();
         });
@@ -44,12 +50,49 @@ export class AppComponent {
         toast.present();
     }
 
+    private async presentAlert() {
+        const alert = await this.alertController.create({
+            message: 'Exit app?',
+            buttons: [
+                {
+                    text: 'No',
+                    handler: () => {
+                        alert.dismiss();
+                        return false;
+                    }
+                }, {
+                    text: 'Yes',
+                    handler: () => {
+                        alert.dismiss(true);
+                        return false;
+                    }
+                }
+            ]
+        });
+        alert.onDidDismiss().then((detail: OverlayEventDetail) => {
+            if (detail.data) {
+                navigator['app'].exitApp();
+            }
+        })
+
+        await alert.present();
+
+    }
+
     private notificationSetup() {
         this.fcm.onNotificationOpen().subscribe((msg: any) => {
-            console.log('got msg inside app.components.ts ' + JSON.stringify(msg));
+            this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
             this.fcm.saveNotification(msg);
-            // this.presentToast(JSON.stringify(msg));
         });
+    }
+
+    private androidSetup() {
+        this.statusBar.styleLightContent();
+        this.platform.backButton.subscribeWithPriority(0, () => {
+            // this.presentToast(`window.location.pathname ${window.location.pathname}`);
+            this.logger.info(`window.location.pathname ${window.location.pathname}`);
+            this.presentAlert();
+          });
     }
 
 

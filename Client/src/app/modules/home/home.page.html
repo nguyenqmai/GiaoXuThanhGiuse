@@ -1,7 +1,7 @@
 <ion-header>
     <ion-toolbar>
         <ion-title>
-            Home
+            Saint Joseph Parish - Charlotte
         </ion-title>
     </ion-toolbar>
 </ion-header>
@@ -19,72 +19,36 @@
         </ion-card-content>
     </ion-card>
     <ion-list lines="none">
-        <ion-item-group>
-            <ion-item-divider (click)="tongleGroupExpansion(group)">
-                <ion-label>Mass Schedule</ion-label>
-                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
+        <ion-item-group *ngFor="let eventGroup of getEventGroups()">
+            <ion-item-divider (click)="tongleGroupExpansion(eventGroup)">
+                <ion-label>{{eventGroup.displayName}}</ion-label>
+                <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
             </ion-item-divider>
 
-            <!-- <div *ngIf="group.expanded"> -->
-                <ion-item>
-                    <ion-label>Tuesday - Friday: 6:00PM</ion-label>
-                    <ion-note slot="end">Mass in Vietnamese</ion-note>
-                </ion-item>
-                <ion-item>
-                    <ion-label>Saturday Vigil: 6:30PM</ion-label>
-                    <ion-note slot="end">Mass in Vietnamese</ion-note>
-                </ion-item>
-                <ion-item>
-                    <ion-label>Sunday: 8:30 AM | 10:30 AM</ion-label>
-                    <ion-note slot="end">Mass in Vietnamese</ion-note>
-                </ion-item>
-                <ion-item>
-                    <ion-label>Sunday: 12:30PM</ion-label>
-                    <ion-note slot="end">Mass in English</ion-note>
-                </ion-item>
-            <!-- </div> -->
-        </ion-item-group>
+             <div *ngIf="eventGroup.expanded">
+<!--                <ion-item *ngFor="let event of eventGroup.events">-->
+<!--                    <ion-label text-wrap>-->
+<!--                        <h2>{{event.name}}: {{event.occurrences.join(' | ')}}</h2>-->
+<!--                        <h4 *ngIf="event.note">{{event.note}}</h4>-->
+<!--                    </ion-label>-->
+<!--                </ion-item>-->
+                 <ion-card *ngFor="let event of eventGroup.events">
+                     <ion-card-header>
+                         <ion-card-subtitle>{{event.name}}
+                             <span *ngIf="event.occurrences && event.occurrences.length > 0">: {{event.occurrences.join(' | ')}}</span>
+                         </ion-card-subtitle>
+                     </ion-card-header>
 
-        <ion-item-group>
-            <ion-item-divider (click)="tongleGroupExpansion(group)">
-                <ion-label>Reconciliation/Confession</ion-label>
-                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
-            </ion-item-divider>
-
-            <!-- <div *ngIf="group.expanded"> -->
-            <ion-item>
-                <ion-label>Tuesday - Saturday: 5:00PM - 5:45PM</ion-label>
-                <ion-note slot="end">Or by appointment</ion-note>
-            </ion-item>
-
-            <ion-item>
-                <ion-label>Last Sunday of each Month: 1:30PM</ion-label>
-                <ion-note slot="end">After 12:30PM Mass</ion-note>
-            </ion-item>
-            <ion-item>
-                <ion-label>Advent and Lent: TBD</ion-label>
-                <ion-note slot="end">Please see announcement</ion-note>
-            </ion-item>
-            <!-- </div> -->
-        </ion-item-group>
-
-        <ion-item-group>
-            <ion-item-divider (click)="tongleGroupExpansion(group)">
-                <ion-label>Office Hours</ion-label>
-                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
-            </ion-item-divider>
-
-            <!-- <div *ngIf="group.expanded"> -->
-            <ion-item>
-                <ion-label>Tuesday - Friday: 9:00 AM - 5:00PM</ion-label>
-            </ion-item>
-            <ion-item>
-                <ion-label>Saturday - Sunday: 9:00 AM - 1:00PM</ion-label>
-            </ion-item>
-            <ion-item>
-                <ion-label>Monday: Closed</ion-label>
-            </ion-item>
-            <!-- </div> -->
+                     <ion-card-content>
+                         <div *ngIf="event.note">{{event.note}}</div>
+                         <div *ngIf="event.contactIds && event.contactIds.length > 0">Please contact:
+                             <ul *ngFor="let contact of event.contactIds">
+                                 <li>{{contact}}</li>
+                             </ul>
+                         </div>
+                     </ion-card-content>
+                 </ion-card>
+             </div>
         </ion-item-group>
 
     </ion-list>

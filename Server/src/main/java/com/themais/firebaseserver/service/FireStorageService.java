@@ -4,6 +4,8 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.themais.firebaseserver.model.BaseMessage;
+import com.themais.firebaseserver.model.ContactInfo;
+import com.themais.firebaseserver.model.EventInfo;
 import com.themais.firebaseserver.model.TopicNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,7 @@ public class FireStorageService {
         }
     }
 
-    public boolean addNewTopic(TopicNode newTopic) {
+    public boolean upsertTopic(TopicNode newTopic) {
         try {
             firestore.collection("topics").document().set(newTopic).get();
             return true;
@@ -109,4 +111,71 @@ public class FireStorageService {
         }
     }
 
+    public List<EventInfo> getMassHours() {
+        ApiFuture<QuerySnapshot> query = firestore.collection("massHours").orderBy("displayOrder", Query.Direction.ASCENDING).get();
+        try { // query.get() blocks on response
+            return query.get().getDocuments().
+                    stream().
+                    map(doc -> {
+                        EventInfo tmp = doc.toObject(EventInfo.class);
+                        tmp.setId(doc.getId());
+                        return tmp;
+                    }).
+                    collect(Collectors.toList());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public boolean upsertMassHour(EventInfo massHour) {
+        try {
+            firestore.collection("massHours").document().set(massHour).get();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean deleteMassHour(String massHourId) {
+        try {
+            firestore.collection("massHours").document(massHourId).delete();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public List<ContactInfo> getAllContacts() {
+        ApiFuture<QuerySnapshot> query = firestore.collection("contacts").get();
+        try { // query.get() blocks on response
+            return query.get().getDocuments().
+                    stream().
+                    map(doc -> {
+                        ContactInfo tmp = doc.toObject(ContactInfo.class);
+                        tmp.setId(doc.getId());
+                        return tmp;
+                    }).
+                    collect(Collectors.toList());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public boolean upsertContactInfo(ContactInfo contactInfo) {
+        try {
+            firestore.collection("contacts").document().set(contactInfo).get();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean deleteContactInfo(String contactInfoId) {
+        try {
+            firestore.collection("contacts").document(contactInfoId).delete();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
