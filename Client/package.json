@@ -15,7 +15,7 @@
     "android_build": "ionic cordova  build android --prod",
     "android_run": "ionic cordova  run android --prod --device",
     "android_emulate": "ionic cordova  emulate android --prod",
-    "adb_log": "adb logcat"
+    "adb_log": "C:\\Users\\nguyenqmai\\AppData\\Local\\Android\\sdk\\platform-tools\\adb logcat"
   },
   "private": true,
   "dependencies": {

@@ -13,7 +13,7 @@ import java.util.List;
  * Created by nguyenqmai on 2/5/2019.
  */
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/rest/notifications")
 public class NotificationController {
     @Autowired
     FireStorageService fireStorageService;

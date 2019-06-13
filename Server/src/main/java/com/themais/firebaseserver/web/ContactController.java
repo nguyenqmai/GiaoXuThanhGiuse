@@ -13,7 +13,7 @@ import java.util.List;
  * Created by nguyenqmai on 2/5/2019.
  */
 @RestController
-@RequestMapping("/contacts")
+@RequestMapping("/rest/contacts")
 public class ContactController {
     @Autowired
     FireStorageService fireStorageService;

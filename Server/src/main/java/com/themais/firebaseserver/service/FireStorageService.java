@@ -10,7 +10,6 @@ import com.themais.firebaseserver.model.TopicNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,21 +18,25 @@ import java.util.stream.Collectors;
  */
 @Service
 public class FireStorageService {
+    enum MyCollections {
+        topics, events, baseMessages, contacts
+    }
+
     @Autowired
     Firestore firestore;
 
     public List<String> getAllAvailableTopicNames() {
-        ApiFuture<QuerySnapshot> query = firestore.collection("topics").select(FieldPath.documentId()).get();
+        ApiFuture<QuerySnapshot> query = firestore.collection(MyCollections.topics.name()).select(FieldPath.documentId()).get();
         try { // query.get() blocks on response
             return query.get().getDocuments().stream().map(it -> it.getId()).collect(Collectors.toList());
         } catch (Exception e) {
-            return Collections.emptyList();
+            return java.util.Collections.emptyList();
         }
     }
 
 
     public List<TopicNode> getAllAvailableTopics() {
-        ApiFuture<QuerySnapshot> query = firestore.collection("topics").get();
+        ApiFuture<QuerySnapshot> query = firestore.collection(MyCollections.topics.name()).get();
         try { // query.get() blocks on response
             return query.get().getDocuments().
                     stream().
@@ -44,13 +47,13 @@ public class FireStorageService {
                     }).
                     collect(Collectors.toList());
         } catch (Exception e) {
-            return Collections.emptyList();
+            return java.util.Collections.emptyList();
         }
     }
 
     public boolean upsertTopic(TopicNode newTopic) {
         try {
-            firestore.collection("topics").document().set(newTopic).get();
+            firestore.collection(MyCollections.topics.name()).document().set(newTopic).get();
             return true;
         } catch (Exception e) {
             return false;
@@ -59,7 +62,7 @@ public class FireStorageService {
 
     public List<BaseMessage> getBaseMessages(String topic, BaseMessage.Status status) {
         try { // query.get() blocks on response
-            Query query = firestore.collection("baseMessages");
+            Query query = firestore.collection(MyCollections.baseMessages.name());
             if (topic != null) {
                 query = query.whereEqualTo("topic", topic);
             }
@@ -78,7 +81,7 @@ public class FireStorageService {
                     }).
                     collect(Collectors.toList());
         } catch (Exception e) {
-            return Collections.emptyList();
+            return java.util.Collections.emptyList();
         }
     }
 
@@ -88,7 +91,7 @@ public class FireStorageService {
         try {
             newMessage.setCreationTime(Timestamp.now());
             newMessage.setStatus(BaseMessage.Status.NEW);
-            firestore.collection("baseMessages").document().set(newMessage).get();
+            firestore.collection(MyCollections.baseMessages.name()).document().set(newMessage).get();
             return true;
         } catch (Exception e) {
             return false;
@@ -99,7 +102,7 @@ public class FireStorageService {
         if (status == null)
             return false;
         try {
-            DocumentReference docRef = firestore.collection("baseMessages").document(messageId);
+            DocumentReference docRef = firestore.collection(MyCollections.baseMessages.name()).document(messageId);
             ApiFuture<WriteResult> future = (exceptionDetail == null) ?
                     docRef.update("status", status.name()) :
                     docRef.update("status", status.name(), "exceptionDetail", exceptionDetail);
@@ -111,8 +114,10 @@ public class FireStorageService {
         }
     }
 
-    public List<EventInfo> getMassHours() {
-        ApiFuture<QuerySnapshot> query = firestore.collection("massHours").orderBy("displayOrder", Query.Direction.ASCENDING).get();
+    public List<EventInfo> getEventInfos(String tag) {
+        ApiFuture<QuerySnapshot> query = (tag == null || tag.isEmpty()) ?
+                firestore.collection("events").get() :
+                firestore.collection("events").whereArrayContains("tags", tag).get();
         try { // query.get() blocks on response
             return query.get().getDocuments().
                     stream().
@@ -123,22 +128,35 @@ public class FireStorageService {
                     }).
                     collect(Collectors.toList());
         } catch (Exception e) {
-            return Collections.emptyList();
+            return java.util.Collections.emptyList();
         }
     }
 
-    public boolean upsertMassHour(EventInfo massHour) {
+    public EventInfo getEventInfo(String eventId) {
+        ApiFuture<DocumentSnapshot> query = firestore.collection(MyCollections.events.name()).document(eventId).get();
+        try { // query.get() blocks on response
+            return query.get().toObject(EventInfo.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public boolean upsertEventInfo(EventInfo eventInfo) {
         try {
-            firestore.collection("massHours").document().set(massHour).get();
+            if (eventInfo.getId() != null) {
+                firestore.collection(MyCollections.events.name()).document(eventInfo.getId()).set(eventInfo).get();
+            } else {
+                firestore.collection(MyCollections.events.name()).document().set(eventInfo).get();
+            }
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public boolean deleteMassHour(String massHourId) {
+    public boolean deleteEventInfo(String eventId) {
         try {
-            firestore.collection("massHours").document(massHourId).delete();
+            firestore.collection(MyCollections.events.name()).document(eventId).delete();
             return true;
         } catch (Exception e) {
             return false;
@@ -146,7 +164,7 @@ public class FireStorageService {
     }
 
     public List<ContactInfo> getAllContacts() {
-        ApiFuture<QuerySnapshot> query = firestore.collection("contacts").get();
+        ApiFuture<QuerySnapshot> query = firestore.collection(MyCollections.contacts.name()).get();
         try { // query.get() blocks on response
             return query.get().getDocuments().
                     stream().
@@ -157,13 +175,13 @@ public class FireStorageService {
                     }).
                     collect(Collectors.toList());
         } catch (Exception e) {
-            return Collections.emptyList();
+            return java.util.Collections.emptyList();
         }
     }
 
     public boolean upsertContactInfo(ContactInfo contactInfo) {
         try {
-            firestore.collection("contacts").document().set(contactInfo).get();
+            firestore.collection(MyCollections.contacts.name()).document().set(contactInfo).get();
             return true;
         } catch (Exception e) {
             return false;
@@ -172,7 +190,7 @@ public class FireStorageService {
 
     public boolean deleteContactInfo(String contactInfoId) {
         try {
-            firestore.collection("contacts").document(contactInfoId).delete();
+            firestore.collection(MyCollections.contacts.name()).document(contactInfoId).delete();
             return true;
         } catch (Exception e) {
             return false;

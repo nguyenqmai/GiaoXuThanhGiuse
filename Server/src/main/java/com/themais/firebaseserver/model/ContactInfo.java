@@ -13,6 +13,7 @@ public class ContactInfo {
     private String title;
     private String name;
     private String phone;
+    private String email;
 
     @Exclude
     public String getId() {

@@ -12,11 +12,11 @@ import java.util.List;
 public class EventInfo {
     @Exclude
     private String id;
-    private String eventType;
     private int displayOrder;
-    private String name;
+    private String displayName;
     private String note;
-    private List<String> occurrences;
+    private List<String> tags;
+    private List<Occurrence> occurrences;
     private List<String> contactIds;
 
 

@@ -15,6 +15,7 @@ import {IonicStorageModule} from '@ionic/storage';
 import {Firebase} from '@ionic-native/firebase/ngx';
 
 import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
+import {BackendService} from "./services/backend.service";
 
 @NgModule({
     declarations: [AppComponent, ExpandableComponent, AbcComponent,],
@@ -31,6 +32,7 @@ import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
         SplashScreen,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
         Firebase,
+        BackendService,
 
     ],
     bootstrap: [AppComponent]

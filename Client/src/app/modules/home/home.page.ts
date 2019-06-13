@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {EventGroup} from "../../model/eventgroup.model";
+import {BackendService} from "../../services/backend.service";
 
 @Component({
     selector: 'app-home',
@@ -50,6 +51,9 @@ export class HomePage {
             ]
         },
     ];
+
+    constructor(private backend: BackendService) {
+    }
 
     getEventGroups(): EventGroup[] {
         return this.eventGroups;
