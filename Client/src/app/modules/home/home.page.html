@@ -19,7 +19,7 @@
         </ion-card-content>
     </ion-card>
     <ion-list lines="none">
-        <ion-item-group *ngFor="let eventGroup of getEventGroups()">
+        <ion-item-group *ngFor="let eventGroup of getEventInfos()">
             <ion-item-divider (click)="tongleGroupExpansion(eventGroup)">
                 <ion-label>{{eventGroup.displayName}}</ion-label>
                 <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>

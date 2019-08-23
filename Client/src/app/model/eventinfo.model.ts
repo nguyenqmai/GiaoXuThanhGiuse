@@ -1,6 +1,11 @@
 export interface EventInfo {
-    name: string,
+    expanded: boolean,
+
+    id: string,
+    displayOrder: number,
+    displayName: string,
     note: string,
+    tags: string[],
     occurrences: string[],
     contactIds: string[],
 
