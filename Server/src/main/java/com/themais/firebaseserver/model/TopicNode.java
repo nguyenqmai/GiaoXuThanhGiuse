@@ -8,9 +8,9 @@ import lombok.Data;
  */
 @Data
 public class TopicNode {
-    @Exclude
     private String id;
-    private String displayName;
+    private String vietnameseName;
+    private String englishName;
     private String parentId;
 
     @Exclude
@@ -18,7 +18,6 @@ public class TopicNode {
         return id;
     }
 
-    @Exclude
     public void setId(String id) {
         this.id = id;
     }

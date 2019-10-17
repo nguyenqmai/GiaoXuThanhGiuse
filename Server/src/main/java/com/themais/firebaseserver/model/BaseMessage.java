@@ -11,7 +11,6 @@ import java.util.Map;
  */
 @Data
 public class BaseMessage {
-    @Exclude
     private String id;
     private Timestamp creationTime;
     private Status status;
@@ -27,7 +26,6 @@ public class BaseMessage {
         return id;
     }
 
-    @Exclude
     public void setId(String id) {
         this.id = id;
     }

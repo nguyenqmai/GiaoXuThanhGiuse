@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -119,11 +120,15 @@ public class FireStorageService {
                 firestore.collection("events").get() :
                 firestore.collection("events").whereArrayContains("tags", tag).get();
         try { // query.get() blocks on response
+            Map<String, ContactInfo> contacts = getAllContacts();
             return query.get().getDocuments().
                     stream().
                     map(doc -> {
                         EventInfo tmp = doc.toObject(EventInfo.class);
                         tmp.setId(doc.getId());
+                        tmp.setContacts(
+                            tmp.getContactIds().stream().map(id -> contacts.get(id)).collect(Collectors.toList())
+                        );
                         return tmp;
                     }).
                     collect(Collectors.toList());
@@ -135,7 +140,15 @@ public class FireStorageService {
     public EventInfo getEventInfo(String eventId) {
         ApiFuture<DocumentSnapshot> query = firestore.collection(MyCollections.events.name()).document(eventId).get();
         try { // query.get() blocks on response
-            return query.get().toObject(EventInfo.class);
+            EventInfo ret = query.get().toObject(EventInfo.class);
+            ret.setId(eventId);
+            if (!ret.getContactIds().isEmpty()) {
+                Map<String, ContactInfo> contacts = getAllContacts();
+                ret.setContacts(
+                        ret.getContactIds().stream().map(id -> contacts.get(id)).collect(Collectors.toList())
+                );
+            }
+            return ret;
         } catch (Exception e) {
             return null;
         }
@@ -163,7 +176,7 @@ public class FireStorageService {
         }
     }
 
-    public List<ContactInfo> getAllContacts() {
+    public Map<String, ContactInfo> getAllContacts() {
         ApiFuture<QuerySnapshot> query = firestore.collection(MyCollections.contacts.name()).get();
         try { // query.get() blocks on response
             return query.get().getDocuments().
@@ -173,9 +186,9 @@ public class FireStorageService {
                         tmp.setId(doc.getId());
                         return tmp;
                     }).
-                    collect(Collectors.toList());
+                    collect(Collectors.toMap(ContactInfo::getId, ContactInfo::self));
         } catch (Exception e) {
-            return java.util.Collections.emptyList();
+            return java.util.Collections.emptyMap();
         }
     }
 

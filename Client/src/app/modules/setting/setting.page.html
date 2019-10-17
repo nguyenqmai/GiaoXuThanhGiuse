@@ -7,32 +7,54 @@
 </ion-header>
 
 <ion-content>
-    <ion-list lines="full">
+        <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+            <ion-refresher-content></ion-refresher-content>
+        </ion-refresher>
 
-        <ion-item>
-            <ion-button expand="full" fill="solid" (click)="saveSubscriptions()">Save all changes</ion-button>
+    <ion-list lines="full">
+        <ion-item color="light">
+            <ion-label slot="start" color="dark" class="ion-text-wrap">Notifications</ion-label>
+            <ion-icon slot="end" color="medium" name="sync" (click)="refreshTopics()"></ion-icon>
+            <ion-icon slot="end" color="medium" name="add" (click)="saveSubscriptions()"></ion-icon>
         </ion-item>
 
         <ion-item-group *ngFor="let group of getTopicGroups()">
-            <ion-item-divider (click)="tongleGroupExpansion(group)">
+            <ion-item (click)="tongleGroupExpansion(group)">
                 <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
-                <ion-label>{{group.name}}</ion-label>
-                <!-- <ion-checkbox slot="end" color="primary" [(ngModel)]="group.status" (ionChange)="checkboxGroupClicked(group)"></ion-checkbox> -->
-                <ion-toggle slot="end" color="primary" [(ngModel)]="group.status"
-                            (ngModelChange)="checkboxGroupClicked(group)"></ion-toggle>
-            </ion-item-divider>
+                <ion-label color="medium" class="ion-text-wrap">{{group.englishName}}</ion-label>
+<!--                <ion-button slot="end" color="medium" size="small" (click)="saveSubscriptions()">Create sub-group</ion-button>-->
+<!--                <ion-toggle slot="end" color="medium" [(ngModel)]="group.status" (ngModelChange)="checkboxGroupClicked(group)"></ion-toggle>-->
+            </ion-item>
 
             <div *ngIf="group.expanded">
-                <ion-item *ngFor="let item of group.subItems">
-                    <ion-label padding-start margin-start>{{item.name}}</ion-label>
-                    <!-- <ion-checkbox  margin-end slot="end" color="secondary" [(ngModel)]="item.status" (ionChange)="checkboxItemClicked(group, item)"></ion-checkbox> -->
-                    <ion-toggle margin-end slot="end" color="secondary" [(ngModel)]="item.status"
-                                (ngModelChange)="checkboxItemClicked(group, item)"></ion-toggle>
+                <ion-item *ngFor="let item of group.subtopics">
+                    <ion-label padding-start margin-start color="medium" class="ion-text-wrap">{{item.englishName}}</ion-label>
+                    <ion-toggle margin-end slot="end" color="medium" [(ngModel)]="item.subscribed" (ngModelChange)="checkboxItemClicked(group, item)"></ion-toggle>
                 </ion-item>
             </div>
         </ion-item-group>
 
-    </ion-list>
+        <ion-item>
+            <ion-label slot="start" color="dark" class="ion-text-wrap">Backend Server</ion-label>
+<!--            <ion-icon slot="end" color="medium" name="refresh" (click)="refreshTopics()"></ion-icon>-->
+<!--            <ion-icon slot="end" color="medium" name="add" (click)="saveSubscriptions()"></ion-icon>-->
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Server URL <ion-text color="danger">*</ion-text></ion-label>
+            <ion-input
+                    type="url"
+                    inputmode="url"
+                    clearInput="true"
+                    clearOnEdit="true"
+                    [(ngModel)]="newBackendServerUrl"
+                    ></ion-input>
+            <ion-icon *ngIf="newBackendServerUrl != getBackendServerUrl()"
+                    slot="end"
+                    color="medium"
+                    name="checkbox-outline"
+                    (click)="switchBackendServerUrl()"></ion-icon>
+        </ion-item>
 
+    </ion-list>
 
 </ion-content>

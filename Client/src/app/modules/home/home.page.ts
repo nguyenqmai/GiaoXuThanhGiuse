@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {BackendService} from "../../services/backend.service";
 import {EventInfo} from "../../model/eventinfo.model";
-import {forkJoin} from "rxjs";
+import {forkJoin, timer} from "rxjs";
+import {NGXLogger} from "ngx-logger";
 
 @Component({
     selector: 'app-home',
@@ -11,7 +12,7 @@ import {forkJoin} from "rxjs";
 export class HomePage implements OnInit {
     // private eventGroups: EventGroup[] = [
     //     {
-    //         displayName: 'Office Hours',
+    //         vietnameseName: 'Office Hours',
     //         order: 0,
     //         expanded: false,
     //         events: [
@@ -21,7 +22,7 @@ export class HomePage implements OnInit {
     //         ]
     //     },
     //     {
-    //         displayName: 'Mass Schedule',
+    //         vietnameseName: 'Mass Schedule',
     //         order: 100,
     //         expanded: false,
     //         events: [
@@ -32,7 +33,7 @@ export class HomePage implements OnInit {
     //         ]
     //     },
     //     {
-    //         displayName: 'Reconciliation/Confession',
+    //         vietnameseName: 'Reconciliation/Confession',
     //         order: 200,
     //         expanded: false,
     //         events: [
@@ -42,7 +43,7 @@ export class HomePage implements OnInit {
     //         ]
     //     },
     //     {
-    //         displayName: 'Sacraments',
+    //         vietnameseName: 'Sacraments',
     //         order: 300,
     //         expanded: false,
     //         events: [
@@ -56,7 +57,7 @@ export class HomePage implements OnInit {
     private enable: boolean = false;
     frontPageGroups: EventInfo[] = [];
 
-    constructor(private backend: BackendService) {
+    constructor(private logger: NGXLogger, private backend: BackendService) {
     }
 
     ngOnInit(): void {
@@ -64,18 +65,50 @@ export class HomePage implements OnInit {
         this.loadData();
     }
 
+    doRefresh(event) {
+        this.logger.log('Begin async operation');
+
+        setTimeout(() => {
+            this.logger.log('Async operation has ended');
+            event.target.complete();
+        }, 2000);
+    }
+
     getEventInfos(): EventInfo[] {
         return this.frontPageGroups;
     }
 
     public tongleGroupExpansion(group: EventInfo) {
+        this.logger.log('Inside tongleGroupExpansion');
         group.expanded = !group.expanded;
+        let delta = Date.now() - group.lastUpdated
+
+        if (delta/1000/60 > 30) { // update every 40 minutes
+            this.refreshEventInfo(group);
+        } else {
+            this.logger.log('No need to refresh data');
+        }
+    }
+
+    public refreshEventInfo(group: EventInfo) {
+        this.logger.log('Need to refresh data');
+        this.backend.getEventInfo(group.id).subscribe(event => {
+            for (var index in this.frontPageGroups) {
+                if (this.frontPageGroups[index].id == event.id) {
+                    this.frontPageGroups[index] = event;
+                    break;
+                }
+            }
+        })
     }
 
     private loadData() {
         forkJoin(this.backend.getOfficeHours(),
             this.backend.getMassSchedule(),
             this.backend.getConfessionSchedule()).subscribe(([officeHours, massSchedule, confessionSchedule]) => {
+                officeHours.lastUpdated = Date.now();
+                massSchedule.lastUpdated = Date.now();
+                confessionSchedule.lastUpdated = Date.now();
                 this.frontPageGroups.push(officeHours, massSchedule, confessionSchedule);
                 this.enable = true;
         })

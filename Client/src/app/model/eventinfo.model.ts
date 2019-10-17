@@ -1,12 +1,15 @@
-export interface EventInfo {
-    expanded: boolean,
+import {EventOccurrence} from "./eventoccurence.model";
 
-    id: string,
-    displayOrder: number,
-    displayName: string,
-    note: string,
-    tags: string[],
-    occurrences: string[],
-    contactIds: string[],
+export interface EventInfo {
+    expanded: boolean;
+    lastUpdated: number;
+
+    id: string;
+    displayOrder: number;
+    displayName: string;
+    note: string;
+    tags: string[];
+    occurrences: EventOccurrence[];
+    contactIds: string[];
 
 }

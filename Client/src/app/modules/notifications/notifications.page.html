@@ -7,13 +7,17 @@
 </ion-header>
 
 <ion-content>
+        <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+            <ion-refresher-content></ion-refresher-content>
+        </ion-refresher>
+
     <ion-list lines="full">
         <ion-item>
-            <ion-button expand="full" fill="solid" (click)="insertRandomNotification()">Add notification</ion-button>
+            <ion-button expand="full" fill="solid" color="medium" (click)="insertRandomNotification()">Add notification</ion-button>
         </ion-item>
 
         <ion-item>
-            <ion-button expand="full" fill="solid" (click)="refreshAllNotifications()">Refresh notifications
+            <ion-button expand="full" fill="solid" color="medium" (click)="refreshAllNotifications()">Refresh notifications
             </ion-button>
         </ion-item>
 
@@ -24,8 +28,7 @@
                 <h4>{{fcmNotification.receivedTime}}</h4>
                 <h4>{{fcmNotification.msg}}</h4>
             </ion-label>
-            <ion-button fill="solid" color="danger" (click)="deleteNotification(fcmNotification.key)">Delete
-            </ion-button>
+            <ion-button fill="solid" color="warning" (click)="deleteNotification(fcmNotification.key)">Delete</ion-button>
             <!-- <div class="item-note" slot="end">{{fcmNotification.label}} {{fcmNotification.body}}</div> -->
         </ion-item>
 

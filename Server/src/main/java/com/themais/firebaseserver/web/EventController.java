@@ -68,7 +68,7 @@ public class EventController {
         return fireStorageService.getEventInfos(tag);
     }
 
-    @GetMapping("/{eventId}/")
+    @GetMapping("/{eventId}")
     EventInfo getEventInfo(@PathVariable(name = "eventId") String eventId) {
         return fireStorageService.getEventInfo(eventId);
     }
@@ -78,7 +78,7 @@ public class EventController {
         return fireStorageService.upsertEventInfo(officeHour);
     }
 
-    @DeleteMapping("/{eventId}/")
+    @DeleteMapping("/{eventId}")
     boolean deleteEventInfo(@PathVariable(name = "eventId") String eventId) {
         return fireStorageService.deleteEventInfo(eventId);
     }

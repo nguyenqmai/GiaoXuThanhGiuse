@@ -7,6 +7,7 @@ import com.themais.firebaseserver.service.FireStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,8 +20,8 @@ public class ContactController {
     FireStorageService fireStorageService;
 
     @GetMapping("/")
-    List<ContactInfo> getAllContacts() {
-        return fireStorageService.getAllContacts();
+    Collection<ContactInfo> getAllContacts() {
+        return fireStorageService.getAllContacts().values();
     }
 
     @PostMapping("/")

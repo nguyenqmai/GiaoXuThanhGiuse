@@ -7,6 +7,15 @@
 </ion-header>
 
 <ion-content>
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content
+                pullingIcon="arrow-dropdown"
+                pullingText="Pull to refresh"
+                refreshingSpinner="circles"
+                refreshingText="Refreshing...">
+        </ion-refresher-content>
+    </ion-refresher>
+
     <ion-card class="welcome-card">
         <ion-img src="/assets/GXTGiuse.png"></ion-img>
 <!--        <ion-card-header>-->
@@ -26,26 +35,28 @@
             </ion-item-divider>
 
              <div *ngIf="eventGroup.expanded">
-<!--                <ion-item *ngFor="let event of eventGroup.events">-->
-<!--                    <ion-label text-wrap>-->
-<!--                        <h2>{{event.name}}: {{event.occurrences.join(' | ')}}</h2>-->
-<!--                        <h4 *ngIf="event.note">{{event.note}}</h4>-->
-<!--                    </ion-label>-->
-<!--                </ion-item>-->
-                 <ion-card *ngFor="let event of eventGroup.events">
-                     <ion-card-header>
-                         <ion-card-subtitle>{{event.name}}
-                             <span *ngIf="event.occurrences && event.occurrences.length > 0">: {{event.occurrences.join(' | ')}}</span>
-                         </ion-card-subtitle>
-                     </ion-card-header>
-
+                 <ion-card button="true" (click)="tongleGroupExpansion(eventGroup)">
                      <ion-card-content>
-                         <div *ngIf="event.note">{{event.note}}</div>
-                         <div *ngIf="event.contactIds && event.contactIds.length > 0">Please contact:
-                             <ul *ngFor="let contact of event.contactIds">
-                                 <li>{{contact}}</li>
-                             </ul>
-                         </div>
+                     <div *ngIf="eventGroup.contacts && eventGroup.contacts.length > 0">
+                     Please contact:
+                     <ul *ngFor="let contact of eventGroup.contacts">
+                         <li>
+                             <span *ngIf="contact.title">{{contact.title}} </span>
+                             <span>{{contact.name}}: </span>
+                             <span>{{contact.phone}}</span>
+                         </li>
+                     </ul>
+                     </div>
+                     <div *ngIf="eventGroup.occurrences && eventGroup.occurrences.length > 0">
+                     Detail:
+<!--                         <ion-card-subtitle>{{occurence.date}}: {{occurence.time}}</ion-card-subtitle>-->
+                         <ul *ngFor="let occurence of eventGroup.occurrences">
+                             <li>
+                                 <div>{{occurence.date}}: {{occurence.time}}</div>
+                                 <div *ngIf="occurence.note">{{occurence.note}}</div>
+                             </li>
+                         </ul>
+                     </div>
                      </ion-card-content>
                  </ion-card>
              </div>

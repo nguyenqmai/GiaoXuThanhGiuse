@@ -10,14 +10,14 @@ import java.util.List;
  */
 @Data
 public class EventInfo {
-    @Exclude
     private String id;
     private int displayOrder;
     private String displayName;
     private String note;
     private List<String> tags;
-    private List<Occurrence> occurrences;
     private List<String> contactIds;
+    private List<Occurrence> occurrences;
+    private List<ContactInfo> contacts;
 
 
     @Exclude
@@ -25,8 +25,16 @@ public class EventInfo {
         return id;
     }
 
-    @Exclude
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Exclude
+    public List<ContactInfo> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(List<ContactInfo> contacts) {
+        this.contacts = contacts;
     }
 }

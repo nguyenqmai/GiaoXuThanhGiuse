@@ -3,27 +3,23 @@ package com.themais.firebaseserver.model;
 import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * Created by nguyenqmai on 6/10/2019.
+ * Created by nguyenqmai on 5/30/2019.
  */
 @Data
-public class ContactInfo {
+public class TopicGroup {
     private String id;
-    private String title;
-    private String name;
-    private String phone;
-    private String email;
+    private String vietnameseName;
+    private String englishName;
+    private List<TopicNode> subtopics;
 
-    @Exclude
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public ContactInfo self() {
-        return this;
     }
 }
