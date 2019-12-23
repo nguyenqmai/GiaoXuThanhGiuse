@@ -3,6 +3,8 @@ package com.themais.firebaseserver.web;
 
 import com.themais.firebaseserver.model.EventInfo;
 import com.themais.firebaseserver.service.FireStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/rest/events")
 public class EventController {
+    private static final Logger logger = LoggerFactory.getLogger(EventController.class);
 
     @Autowired
     FireStorageService fireStorageService;

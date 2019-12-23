@@ -27,7 +27,6 @@
     <plugin name="cordova-plugin-ionic-keyboard" spec="^2.0.5" />
     <allow-navigation href="http://69.221.129.172:8080" sessionid="9d104750" />
     <plugin name="cordova-sqlite-storage" spec="3.0.0" />
-    <plugin name="com-darryncampbell-cordova-plugin-intent" spec="1.1.4" />
     <plugin name="cordova-plugin-firebase-lib" spec="3.0.0" />
     <platform name="android">
         <icon density="ldpi" src="resources\android\icon\drawable-ldpi-icon.png" />

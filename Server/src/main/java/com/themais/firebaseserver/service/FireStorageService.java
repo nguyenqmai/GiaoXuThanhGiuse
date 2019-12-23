@@ -87,10 +87,9 @@ public class FireStorageService {
     }
 
     public boolean addNewBaseMessage(String topic, BaseMessage newMessage) {
-        if (!topic.equals(newMessage.getTopic()))
-            return false;
         try {
-            newMessage.setCreationTime(Timestamp.now());
+            newMessage.setTopic(topic);
+            newMessage.setCreationTime(System.currentTimeMillis());
             newMessage.setStatus(BaseMessage.Status.NEW);
             firestore.collection(MyCollections.baseMessages.name()).document().set(newMessage).get();
             return true;
@@ -190,6 +189,11 @@ public class FireStorageService {
         } catch (Exception e) {
             return java.util.Collections.emptyMap();
         }
+    }
+
+    public ContactInfo getContactWithIdEmail(String userIdEmail) throws Exception {
+        ApiFuture<DocumentSnapshot> query = firestore.collection(MyCollections.contacts.name()).document(userIdEmail).get();
+        return query.get().toObject(ContactInfo.class);
     }
 
     public boolean upsertContactInfo(ContactInfo contactInfo) {

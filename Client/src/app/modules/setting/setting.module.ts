@@ -6,6 +6,8 @@ import {FormsModule} from '@angular/forms';
 import {SettingPage} from './setting.page';
 
 import {FcmService} from '../../services/fcm.service';
+import {SendNotificationModal} from "./sendNotification.modal";
+import {AddTopicModal} from "./addTopic.modal";
 
 @NgModule({
     imports: [
@@ -14,7 +16,10 @@ import {FcmService} from '../../services/fcm.service';
         FormsModule,
         RouterModule.forChild([{path: '', component: SettingPage}])
     ],
-    declarations: [SettingPage]
+    declarations: [SettingPage, SendNotificationModal, AddTopicModal],
+    entryComponents: [
+        SendNotificationModal, AddTopicModal
+    ]
 })
 export class SettingPageModule {
     constructor(

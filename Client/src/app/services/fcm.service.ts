@@ -1,30 +1,38 @@
 import {Injectable} from '@angular/core';
 import {Firebase} from '@ionic-native/firebase/ngx';
-import {ToastController} from '@ionic/angular';
 import {Observable} from 'rxjs';
 
 import {Storage} from '@ionic/storage';
-import {FcmNotification} from '../model/fcmnotification.model';
+import {MyNotification} from '../model/fcmnotification.model';
+import {NGXLogger} from "ngx-logger";
 
 @Injectable({
     providedIn: 'root'
 })
 export class FcmService {
+    /*
+     * notifications are organized into arrays by Date (notime)
+     * and stored in storage under key NOTIFICATION_PREFIX + (new Date(notifcation.creationTime).toDateString())
+     */
+
     public static NOTIFICATION_PREFIX: string = 'notifications-';
+    public static MILLIS_PER_DAY: number = 1000*60*60*24;
     private currentToken: string = null;
 
-    constructor(private firebase: Firebase,
-                private storage: Storage,
-                private toastController: ToastController) {
+    constructor(private logger: NGXLogger,
+                private firebase: Firebase,
+                private storage: Storage) {
         this.setup();
     }
 
     private setup() {
-        console.log('calling fcmService setup ');
+        this.logger.debug('calling fcmService setup ');
         this.firebase.onTokenRefresh().subscribe(newToken => {
-            console.log('got token ' + newToken);
-
-            this.firebase.onNotificationOpen().subscribe(this.saveNotification);
+            this.logger.debug('got token ' + newToken);
+            this.firebase.onNotificationOpen().subscribe((msg: MyNotification) => {
+                    this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
+                    this.saveNotification(msg);
+                });
         });
     }
 
@@ -34,24 +42,24 @@ export class FcmService {
 
     public subscribeToTopic(topic: string) {
         // if (this.currentToken == null) {
-        //   console.log("subscribeToTopic: this.currentToken is null")
+        //   this.logger.debug("subscribeToTopic: this.currentToken is null")
         //   return; // should show a modal of issue
         // }
 
         this.firebase.subscribe(topic).then(good => {
-                console.log('subscribeToTopic: good ' + good);
+                this.logger.debug(`subscribeToTopic ${topic} : ${good}`);
             },
             bad => {
-                console.log('subscribeToTopic: bad ' + bad);
+                this.logger.debug(`subscribeToTopic ${topic} : ${bad}`);
             });
     }
 
     public unsubscribeFromTopic(topic: string) {
         this.firebase.unsubscribe(topic).then(good => {
-                console.log('unsubscribeFromTopic: good ' + good);
+                this.logger.debug(`unsubscribeFromTopic ${topic} : ${good}`);
             },
             bad => {
-                console.log('unsubscribeFromTopic: bad ' + bad);
+                this.logger.debug(`unsubscribeFromTopic ${topic}: ${bad}`);
             });
     }
 
@@ -60,21 +68,20 @@ export class FcmService {
         return await this.storage.keys();
     }
 
-    public getSavedNotifications(): Observable<FcmNotification[]> {
+    public getSavedNotifications(from?: number, to?: number): Observable<Map<number, MyNotification[]>> {
         return new Observable(observer => {
-            let ret: FcmNotification[] = [];
-            this.storage.forEach((value: string, key: string, index: number) => {
-                if (key.startsWith(FcmService.NOTIFICATION_PREFIX)) {
-                    // console.log(key + " => " + value);
-                    let item = <FcmNotification>JSON.parse(value);
-                    ret.push(item);
-                } else {
-                    console.log(key + ' [other => ]' + value);
-
+            this.getNotificationKeys(from, to).then(keys => {
+                for (let keyForDate of keys) {
+                    this.storage.get(keyForDate).then((prevNotifications: MyNotification[]) => {
+                        if (prevNotifications == null || prevNotifications.length == 0) {
+                            return;
+                        }
+                        let ret: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
+                        ret.set(FcmService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
+                        observer.next(ret);
+                    });
                 }
-            }).then(() => {
-                observer.next(ret);
-            });
+            })
             return {
                 unsubscribe() {
                 }
@@ -82,24 +89,84 @@ export class FcmService {
         });
     }
 
-    public onNotificationOpen() {
-        return this.firebase.onNotificationOpen();
+    public async getNotificationKeys(from?: number, to?: number): Promise<string[]> {
+        let fromTime: number = Math.min(from == null ? 0 : from, to == null ? Date.now() : to);
+        let fromKey: string = FcmService.buildNotificationKey(fromTime);
+        let toKey: string = FcmService.buildNotificationKey(Math.max(fromTime, to == null ? Date.now() : to));
+
+        let keys = await this.storage.keys();
+        keys.sort();
+
+        let ret: string[] = [];
+        for (let key of keys) {
+            if (FcmService.isNotificationKey(key) && fromKey <= key && key <= toKey) {
+                ret.push(key);
+            }
+        }
+        return ret;
     }
 
-    public saveNotification(msg: any) {
-        let receivedTime = new Date(Date.now());
-        let myNotification: FcmNotification = {
-            key: FcmService.NOTIFICATION_PREFIX + receivedTime,
-            receivedTime: receivedTime,
-            msg: JSON.stringify(msg)
-        };
+    public async saveNotification(msg: MyNotification) {
+        if (msg.creationTime == null)
+            msg.creationTime= Date.now();
 
-        console.log(`got msg inside FcmService ${myNotification.msg}`);
-        return this.storage.set(myNotification.key, JSON.stringify(myNotification));
+        // var creationDate = new Date(Number(msg.creationTime));
+        var keyForDate = FcmService.buildNotificationKey(msg.creationTime);
+        this.logger.debug(`saveNotification title [${msg.title}] creationTime [${msg.creationTime}] creationTimeType ${typeof msg.creationTime} keyForDate [${keyForDate}]`);
+        var prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
+
+        if (prevNotifications == null) {
+            prevNotifications = []
+        }
+        prevNotifications.push(msg);
+
+        let ret = await this.storage.set(keyForDate, prevNotifications);
+        return ret;
     }
 
-    public deleteNotification(msgKey: string): Promise<void> {
-        return this.storage.remove(msgKey);
+    public async deleteNotification(msg: MyNotification) {
+        if (msg.creationTime == null)
+            return true;
+
+        let keyForDate = FcmService.buildNotificationKey(msg.creationTime);
+        this.logger.debug(`Find notifications for keyForDate ${keyForDate}`);
+
+        let prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
+
+        if (prevNotifications == null || prevNotifications.length == 0) {
+            this.logger.debug(`Notifications for keyForDate ${keyForDate} is null or empty`);
+            return true;
+        }
+
+        this.logger.debug(`Notifications for keyForDate ${keyForDate} count is ${prevNotifications.length}`);
+        let found: boolean = false;
+        for (let index = prevNotifications.length - 1; 0 <= index; index--) {
+            this.logger.debug(`Checking on item ${JSON.stringify(prevNotifications[index])}`);
+            if (msg.topic != prevNotifications[index].topic ||
+                msg.creationTime != prevNotifications[index].creationTime ||
+                msg.title != prevNotifications[index].title)
+                continue;
+
+            this.logger.debug(`Item ${JSON.stringify(prevNotifications[index])} is a match and will be deleted`);
+            prevNotifications.splice(index, 1);
+            found = true;
+        }
+        if (!found)
+            return true;
+        this.logger.debug(`Store the prevNotifications back in storage`);
+        return this.storage.set(keyForDate, prevNotifications);
     }
 
+    private static isNotificationKey(key: string): boolean {
+        return key == null ? false : key.startsWith(FcmService.NOTIFICATION_PREFIX);
+    }
+
+    private static extractTimeFromNotificationKey(key: string): number {
+        return key == null ? 0 : key.startsWith(FcmService.NOTIFICATION_PREFIX) ? Number(key.replace(FcmService.NOTIFICATION_PREFIX, "")) : 0;
+    }
+
+    private static buildNotificationKey(shouldBeANumber: any): string {
+        let date = new Date(Number(shouldBeANumber));
+        return FcmService.NOTIFICATION_PREFIX + `${Math.max(0, Date.parse(date.toDateString()))}`.padStart(15, "0");
+    }
 }

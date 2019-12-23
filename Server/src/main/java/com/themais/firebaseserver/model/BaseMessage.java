@@ -1,9 +1,9 @@
 package com.themais.firebaseserver.model;
 
-import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,13 +12,13 @@ import java.util.Map;
 @Data
 public class BaseMessage {
     private String id;
-    private Timestamp creationTime;
+    private Long creationTime;
     private Status status;
     private String topic;
     private String title;
     private String body;
 
-    private Map<String, String> data;
+    private Map<String, String> extraData;
     private String exceptionDetail;
 
     @Exclude
@@ -31,6 +31,6 @@ public class BaseMessage {
     }
 
     public enum Status {
-        NEW, PROCESSED_SUCCESSFULLY, EXCEPTION
+        NEW, IGNORED, PROCESSED_SUCCESSFULLY, EXCEPTION
     }
 }

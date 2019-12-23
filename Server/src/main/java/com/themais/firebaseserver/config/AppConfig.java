@@ -4,6 +4,7 @@ import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.Data;
@@ -21,7 +22,7 @@ import java.io.IOException;
  */
 @Data
 @Configuration
-@ComponentScan(basePackages = "com.themais.firebaseserver")
+@ComponentScan(basePackages = {"com.themais.firebaseserver.config", "com.themais.firebaseserver.service", "com.themais.firebaseserver.web"})
 @EnableScheduling
 @ConfigurationProperties(prefix = "app")
 
@@ -54,5 +55,10 @@ public class AppConfig {
     public Firestore getFirestore() throws IOException {
         return FirestoreClient.getFirestore(getFirebaseApp());
 
+    }
+
+    @Bean
+    public FirebaseAuth getFireAuth() throws IOException {
+        return FirebaseAuth.getInstance();
     }
 }

@@ -1,5 +1,7 @@
-export interface FcmNotification {
-    key: string;
-    receivedTime: Date;
-    msg: string;
+export interface MyNotification {
+    tap: boolean;
+    creationTime: number;
+    topic: string;
+    title: string;
+    body: string;
 }

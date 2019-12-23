@@ -27,29 +27,41 @@ public class NotificationService {
     @Autowired
     FirebaseMessaging firebaseMessaging;
 
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${cron.expression:13 */3 * * * ?}")
+//    @Scheduled(fixedRate = 30000)
     void processNewBaseMessages() {
-        logger.info("Processing new base message ... {}", dateFormatter.format(System.currentTimeMillis()));
+        logger.info("Processing new base messages ... {}", dateFormatter.format(System.currentTimeMillis()));
         for (BaseMessage msg : fireStorageService.getBaseMessages(null, BaseMessage.Status.NEW)) {
             try {
                 if (msg.getTopic() == null)
                     continue;
 
-                Message.Builder builder = Message.builder().setTopic(msg.getTopic());
-
-                if (msg.getTitle() != null && msg.getBody() != null)
-                    builder.setNotification(new Notification(msg.getTitle(), msg.getBody()));
-
-                if (msg.getData() != null) {
-                    builder.putAllData(msg.getData());
-                }
-                firebaseMessaging.send(builder.build());
-                fireStorageService.updateStatus(msg.getId(), BaseMessage.Status.PROCESSED_SUCCESSFULLY, null);
-
+                fireStorageService.updateStatus(msg.getId(), sendBaseMessage(msg), null);
             } catch (Exception e) {
                 fireStorageService.updateStatus(msg.getId(), BaseMessage.Status.EXCEPTION, exceptionToString(e));
             }
         }
+    }
+
+    public BaseMessage.Status sendBaseMessage(BaseMessage msg) throws Exception {
+        if (msg.getTopic() == null)
+            return BaseMessage.Status.IGNORED;
+
+        Message.Builder builder = Message.builder().setTopic(msg.getTopic());
+
+        if (msg.getTitle() != null && msg.getBody() != null)
+            builder.setNotification(new Notification(msg.getTitle(), msg.getBody()));
+
+
+        builder.putData("topic", msg.getTopic());
+        builder.putData("title", msg.getTitle());
+        builder.putData("body", msg.getBody());
+        builder.putData("creationTime", String.valueOf(msg.getCreationTime()));
+        if (msg.getExtraData() != null) {
+            builder.putAllData(msg.getExtraData());
+        }
+        firebaseMessaging.send(builder.build());
+        return BaseMessage.Status.PROCESSED_SUCCESSFULLY;
     }
 
     private String exceptionToString(Exception e) {

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {OverlayEventDetail} from '@ionic/core';
 import {Platform, ToastController} from '@ionic/angular';
 
@@ -7,35 +7,39 @@ import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {AlertController } from '@ionic/angular';
 import {FcmService} from './services/fcm.service';
 import { NGXLogger } from 'ngx-logger';
+import {BackendService} from "./services/backend.service";
 
 @Component({
     selector: 'app-root',
     templateUrl: 'app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
     private currentFCMToken: string;
 
     constructor(
+        private logger: NGXLogger,
         private platform: Platform,
         private statusBar: StatusBar,
-        private fcm: FcmService,
+        // private fcm: FcmService,
         private splashScreen: SplashScreen,
         private alertController: AlertController,
-        private toastController: ToastController, 
-        private logger: NGXLogger
-    ) {
-        this.initializeApp();
-    }
+        private toastController: ToastController,
+        private backendService: BackendService
+    ) {}
 
-    initializeApp() {
-        this.platform.ready().then(() => {
+    async ngOnInit() {
+        this.backendService.pickAvailableUrl().then(url => {
+            this.backendService.updateUrlPrefix(url);
+        });
+
+        await this.platform.ready().then(() => {
             if(this.platform.is('android')) {
                 this.androidSetup();
             } else {
                 this.statusBar.styleDefault();
             }
             this.splashScreen.hide();
-            this.notificationSetup();
+            // this.notificationSetup();
         });
     }
 
@@ -79,12 +83,12 @@ export class AppComponent {
 
     }
 
-    private notificationSetup() {
-        this.fcm.onNotificationOpen().subscribe((msg: any) => {
-            this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
-            this.fcm.saveNotification(msg);
-        });
-    }
+    // private notificationSetup() {
+    //     this.fcm.onNotificationOpen().subscribe((msg: any) => {
+    //         this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
+    //         this.fcm.saveNotification(msg);
+    //     });
+    // }
 
     private androidSetup() {
         this.statusBar.styleLightContent();

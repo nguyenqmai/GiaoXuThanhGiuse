@@ -1,9 +1,11 @@
 import {Component, OnInit} from '@angular/core';
+import {ModalController, NavParams} from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
 import {FcmService} from '../../services/fcm.service';
 import {BackendService} from "../../services/backend.service";
 import {TopicNode} from "../../model/topicnode.model";
 import {TopicGroup} from "../../model/topicgroup.model";
+import {SendNotificationModal} from "./sendNotification.modal";
 
 @Component({
     selector: 'app-setting',
@@ -12,28 +14,79 @@ import {TopicGroup} from "../../model/topicgroup.model";
 })
 
 
+
 export class SettingPage implements OnInit {
     topicGroups = new Map<string, TopicGroup>();
-    newBackendServerUrl: string = "http://69.221.129.172:8080/rest";
+    firstRefreshTime: number;
+    refreshCount: number = 0;
+    backendServerUrls: string[];
+    selectedBackEndUrl: string;
 
-    constructor(private logger: NGXLogger, private fcm: FcmService, private backendService: BackendService) {
+    sendNotificationAuth: any;
+
+
+    constructor(private logger: NGXLogger,
+                private modalController: ModalController,
+                private fcm: FcmService, private backendService: BackendService) {
     }
 
     ngOnInit(): void {
-        // this.newBackendServerUrl = this.getBackendServerUrl();
-        this.topicGroups = this.backendService.getCurrentSubscriptions();
+        this.backendServerUrls = this.backendService.getAvailableUrlPrefixes();
+        this.selectedBackEndUrl = this.backendService.getCurrentUrlPrefix();
+        this.firstRefreshTime = Date.now();
+        this.refreshCount = 0;
+        this.backendService.loadCurrentSubscriptionsFromLocalStorage().subscribe(topicGroups => {
+                if (topicGroups == null)
+                    return;
+                for (let group of <TopicGroup[]>topicGroups) {
+                    this.topicGroups.set(group.id, group);
+                }
+            })
         if (this.topicGroups.size == 0) {
             this.refreshTopics();
         }
     }
 
-    doRefresh(event) {
-        console.log('Begin async operation');
+    public switchBackendServerUrl() {
+        this.backendService.updateUrlPrefix(this.selectedBackEndUrl);
+        this.refreshCount = 0;
+    }
 
+    public clearStorage() {
+        this.backendService.clearStorage();
+    }
+
+    public login() {
+        this.backendService.authenticate().subscribe(data => {
+            this.sendNotificationAuth = data;
+        })
+    }
+
+    public logout() {
+        this.sendNotificationAuth = null;
+    }
+
+    doRefresh(event) {
+        this.logger.debug('Begin async operation');
+        this.refreshTopics();
         setTimeout(() => {
-            console.log('Async operation has ended');
             event.target.complete();
-        }, 2000);
+            if (this.refreshCount == 0 || (Date.now() - this.firstRefreshTime) > 10000) {
+                this.firstRefreshTime = Date.now();
+                this.refreshCount = 0;
+            }
+
+            this.refreshCount += 1;
+            this.logger.debug('Async operation has ended. refreshCount = ', this.refreshCount);
+        }, 1000);
+    }
+
+    showAdvanceOptions() {
+        this.refreshCount = (this.refreshCount + 1) % 4;
+    }
+
+    public addTopic(group: TopicGroup) {
+        this.logger.debug(`Add topic dialog for group ${JSON.stringify(group)}`);
     }
 
     public getTopicGroups(): TopicGroup[] {
@@ -44,48 +97,92 @@ export class SettingPage implements OnInit {
         return ret;
     }
 
-    public saveSubscriptions() {
-        // for (let group of this.groups) {
-        //     for (let item of group.subItems) {
-        //         if (!item.status) {
-        //             continue;
-        //         }
-        //
-        //         this.logger.debug(`subscribing to topic ${item.topicId}`);
-        //         this.fcm.subscribeToTopic(item.topicId);
-        //     }
-        // }
-    }
-
     public tongleGroupExpansion(parentGroup: any) {
         parentGroup.expanded = !parentGroup.expanded;
     }
 
-    public checkboxItemClicked(parentGroup: TopicGroup, item: TopicNode) {
-        this.logger.debug(`group name ${parentGroup.vietnameseName} checkbox name ${item.vietnameseName}`);
-        for (let sitem of parentGroup.subtopics) {
-            this.logger.debug('sub-item name ' + sitem.vietnameseName + ' sub-item status ' + sitem.subscribed);
+    public checkboxItemClicked(item: TopicNode) {
+        this.logger.debug(`topic name ${item.englishName}`);
+        this.backendService.saveCurrentSubscriptions(this.topicGroups);
+        if (item.subscribed) {
+            this.logger.debug(`subscribing to topic ${JSON.stringify(item)}`);
+            this.fcm.subscribeToTopic(item.id);
+        } else {
+            this.logger.debug(`unsubscribing from topic ${JSON.stringify(item)}`);
+            this.fcm.unsubscribeFromTopic(item.id);
         }
     }
 
-
     public refreshTopics() {
-        this.backendService.getAllAvailableTopics().subscribe(
-            topics => {
-                this.topicGroups = this.backendService.buildTopicGroups(topics);
-                this.backendService.buildSubTopics(this.topicGroups, topics);
-            })
+        this.backendService.getAllAvailableTopics().subscribe(topics => {
+            if (!topics || topics.length == 0)
+                return;
+            let _new = this.backendService.buildTopicGroups(topics);
+            this.backendService.buildSubTopics(_new, topics);
+            this.syncCurrentTopicGroups(_new);
+        })
     }
 
-    public updateLocalBackendServerUrlValue(event) {
-        this.newBackendServerUrl = event.target.value;
+    private syncCurrentTopicGroups(newItems: Map<string, TopicGroup>) {
+        let toBeUnsubscribed: TopicNode[] = []
+        this.topicGroups.forEach((group, idKey, m) => {
+            for (let topic of group.subtopics) {
+                let foundNewTopic = false;
+                newItems.forEach((_group, _idKey, _m) => {
+                    if (group.id == _group.id)
+                        _group.expanded = group.expanded;
+
+                    for (let _topic of _group.subtopics) {
+                        if (topic.id == _topic.id) {
+                            foundNewTopic = true;
+                            _topic.subscribed = topic.subscribed;
+                        }
+                    }
+                });
+                if (!foundNewTopic) {
+                    topic.subscribed = false;
+                    toBeUnsubscribed.push(topic);
+                }
+            }
+        });
+        this.topicGroups = newItems;
+        this.backendService.saveCurrentSubscriptions(this.topicGroups);
+
+        for (let item of toBeUnsubscribed) {
+            this.checkboxItemClicked(item);
+        }
     }
 
-    public getBackendServerUrl(): string {
-        return this.backendService.getCurrentUrlPrefix();
+    public hasNotificationAuthorizationInfo() {
+        return this.sendNotificationAuth != null && this.sendNotificationAuth['notification'] != null;
     }
 
-    public switchBackendServerUrl() {
-        this.backendService.updateUrlPrefix(this.newBackendServerUrl);
+    public canSendNotification(topic: TopicNode): boolean {
+        if (topic == null || !this.hasNotificationAuthorizationInfo())
+            return false;
+
+        if ('CAN_SEND_MSG' == this.sendNotificationAuth.notification[topic.id] || 'CAN_SEND_MSG' == this.sendNotificationAuth.notification[topic.parentId])
+            return true;
+    }
+
+    public async sendMessageToTopic(topic: TopicNode) {
+        const modal = await this.modalController.create({
+            component: SendNotificationModal,
+            componentProps: {
+                'topic': topic
+            }
+        });
+        modal.onDidDismiss().then((resp: any) => {
+            if (resp !== null) {
+                this.logger.debug('The response:', resp);
+                if (resp['data'] != null) {
+                    this.logger.debug('Msg to send:', resp['data']);
+                    this.backendService.sendNotification(topic, resp.data.title, resp.data.body).subscribe(resp => {
+                        this.logger.debug('Msg sent status:', resp);
+                    })
+                }
+            }
+        });
+        await modal.present();
     }
 }

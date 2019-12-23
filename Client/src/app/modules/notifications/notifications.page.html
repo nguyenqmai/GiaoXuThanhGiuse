@@ -2,36 +2,59 @@
     <ion-toolbar>
         <ion-title>
             Received Notifications
+            <ion-icon color="medium" name="add" (click)="insertRandomNotification()"></ion-icon>
         </ion-title>
     </ion-toolbar>
 </ion-header>
 
 <ion-content>
-        <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-            <ion-refresher-content></ion-refresher-content>
-        </ion-refresher>
-
-    <ion-list lines="full">
-        <ion-item>
-            <ion-button expand="full" fill="solid" color="medium" (click)="insertRandomNotification()">Add notification</ion-button>
-        </ion-item>
-
-        <ion-item>
-            <ion-button expand="full" fill="solid" color="medium" (click)="refreshAllNotifications()">Refresh notifications
-            </ion-button>
-        </ion-item>
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
 
 
-        <ion-item *ngFor="let fcmNotification of fcmNotifications">
-            <ion-label text-wrap>
-                <h2>{{fcmNotification.key}}</h2>
-                <h4>{{fcmNotification.receivedTime}}</h4>
-                <h4>{{fcmNotification.msg}}</h4>
-            </ion-label>
-            <ion-button fill="solid" color="warning" (click)="deleteNotification(fcmNotification.key)">Delete</ion-button>
-            <!-- <div class="item-note" slot="end">{{fcmNotification.label}} {{fcmNotification.body}}</div> -->
-        </ion-item>
 
+    <ion-list lines="full" >
+        <ion-item-group *ngFor="let key of getAllNotificationKeys()">
+            <ion-item color="light">
+                <ion-icon slot="start" [name]="getGroupExpansionFlag(key) ? 'arrow-dropdown' : 'arrow-dropright'"
+                          (click)="tongleGroupExpansion(key)"></ion-icon>
+
+                <ion-label slot="start" color="dark" class="ion-text-wrap">{{ key | date:'longDate' }}</ion-label>
+                <!--            <ion-icon slot="end" color="medium" name="sync" (click)="refreshAllNotifications()"></ion-icon>-->
+            </ion-item>
+
+            <div *ngIf="getGroupExpansionFlag(key)">
+
+<!--                <ion-item *ngFor="let fcmNotification of getNotificationsOfKey(key)">-->
+<!--                    <ion-label text-wrap>-->
+<!--                        <h2>{{fcmNotification.title}}</h2>-->
+<!--                        <h4>{{fcmNotification.creationTime}}</h4>-->
+<!--                        <h4>{{fcmNotification.topic}}</h4>-->
+<!--                        <h4>{{fcmNotification.body}}</h4>-->
+<!--                    </ion-label>-->
+<!--                    <ion-icon slot="end" color="danger" name="trash" (click)="deleteNotification(fcmNotification)"></ion-icon>-->
+<!--                     <div class="item-note" slot="end">{{fcmNotification.label}} {{fcmNotification.body}}</div> -->
+<!--                </ion-item>-->
+
+                <ion-card *ngFor="let fcmNotification of getNotificationsOfKey(key)">
+                    <ion-card-header>
+                        <ion-card-subtitle>{{fcmNotification.topic}}</ion-card-subtitle>
+                        <ion-card-title>
+                            <ion-item lines="none">
+                                <ion-text slot="start" >{{fcmNotification.title}}</ion-text>
+                                <ion-icon slot="end" color="danger" name="trash" (click)="deleteNotification(fcmNotification)"></ion-icon>
+                            </ion-item>
+                        </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                        {{fcmNotification.creationTime}} -- {{fcmNotification.body}}
+                    </ion-card-content>
+
+                </ion-card>
+            </div>
+
+        </ion-item-group>
         <!-- <ion-item  *ngFor="let fcmNotification of getAllNotifications()">
             <ion-label text-wrap>
                 <h2>{{fcmNotification.receivedTime}}</h2>

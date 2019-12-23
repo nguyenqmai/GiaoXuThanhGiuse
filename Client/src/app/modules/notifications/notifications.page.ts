@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {FcmService} from '../../services/fcm.service';
-import {FcmNotification} from '../../model/fcmnotification.model';
+import {MyNotification} from '../../model/fcmnotification.model';
 
 // import { Subscription } from 'rxjs';
 
@@ -12,7 +12,10 @@ import {FcmNotification} from '../../model/fcmnotification.model';
 
 
 export class NotificationsPage {
-    fcmNotifications: FcmNotification[] = [];
+    groupExpansionControl: Map<number, boolean> = new Map<number, boolean>();
+    fcmNotifications: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
+    refreshCount: number = 0;
+    synchronizing: boolean = false;
 
     constructor(private fcm: FcmService) {
     }
@@ -23,40 +26,65 @@ export class NotificationsPage {
 
     doRefresh(event) {
         console.log('Begin async operation');
-
+        this.refreshAllNotifications();
         setTimeout(() => {
             console.log('Async operation has ended');
+            this.refreshCount += 1;
             event.target.complete();
-        }, 2000);
+        }, 1000);
     }
 
-    public getAllNotifications() {
-        return [];
+    public getAllNotificationKeys(): number[] {
+        return Array.from(this.fcmNotifications.keys()).sort().reverse();
+    }
+
+    public getNotificationsOfKey(key: number): MyNotification[] {
+        return this.fcmNotifications.get(key);
     }
 
     public insertRandomNotification() {
         let millis = Date.now();
         let notification = {
-            title: 'tile-' + millis,
-            label: 'label-' + millis,
+            key: 'key-' + millis,
+            creationTime: millis,
             tap: false,
+            topic: 'topic-' + millis,
+            title: 'tile-' + millis,
             body: 'body-' + millis,
-            topic: 'topic-' + millis
+
         };
         this.fcm.saveNotification(notification).then(() => {
             this.refreshAllNotifications();
         });
     }
 
-    public deleteNotification(itemKey: string) {
+    public deleteNotification(itemKey: MyNotification) {
         this.fcm.deleteNotification(itemKey).then(() => {
             this.refreshAllNotifications();
         });
     }
 
+    public tongleGroupExpansion(key: number) {
+        this.groupExpansionControl.set(key, !this.groupExpansionControl.get(key))
+    }
+
+    public getGroupExpansionFlag(key: number) {
+        return this.groupExpansionControl.get(key);
+    }
+
     public refreshAllNotifications() {
+        setTimeout(() => {
+            console.log('refreshAllNotifications spinning has ended');
+        }, 1000);
+
+        this.fcmNotifications.clear();
         this.fcm.getSavedNotifications().subscribe(values => {
-            this.fcmNotifications = values;
+            values.forEach((value: MyNotification[], key: number, map: Map<number, MyNotification[]>) => {
+                this.fcmNotifications.set(key, value);
+                if (!this.groupExpansionControl.has(key)) {
+                    this.groupExpansionControl.set(key, false);
+                }
+            })
         });
     }
 }

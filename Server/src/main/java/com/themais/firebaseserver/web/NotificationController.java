@@ -4,6 +4,9 @@ package com.themais.firebaseserver.web;
 import com.themais.firebaseserver.model.BaseMessage;
 import com.themais.firebaseserver.model.TopicNode;
 import com.themais.firebaseserver.service.FireStorageService;
+import com.themais.firebaseserver.service.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +18,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/rest/notifications")
 public class NotificationController {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
+
     @Autowired
     FireStorageService fireStorageService;
+
+    @Autowired
+    NotificationService notificationService;
 
     @GetMapping("/topicNames/")
     List<String> getAllAvailableTopicNames() {
@@ -41,7 +49,14 @@ public class NotificationController {
     }
 
     @PutMapping("/topics/{topic}/messages")
-    boolean addNewBaseMessage(@PathVariable(name = "topic") String topic, @RequestBody BaseMessage newMessage) {
-        return fireStorageService.addNewBaseMessage(topic, newMessage);
+    BaseMessage.Status addNewBaseMessage(@PathVariable(name = "topic") String topic, @RequestBody BaseMessage newMessage) throws Exception {
+
+        try {
+            fireStorageService.addNewBaseMessage(topic, newMessage);
+            return BaseMessage.Status.NEW;
+        } catch (Exception e) {
+            logger.warn("Exception while saving BaseMessage", e);
+            throw e;
+        }
     }
 }
