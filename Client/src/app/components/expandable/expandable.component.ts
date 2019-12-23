@@ -6,7 +6,7 @@ import {Component, ElementRef, Input, Renderer, ViewChild} from '@angular/core';
 })
 export class ExpandableComponent {
 
-    @ViewChild('expandWrapper', {read: ElementRef}) expandWrapper;
+    @ViewChild('expandWrapper', { read: ElementRef, static: true }) expandWrapper;
     @Input('expanded') expanded;
     @Input('expandHeight') expandHeight;
 
