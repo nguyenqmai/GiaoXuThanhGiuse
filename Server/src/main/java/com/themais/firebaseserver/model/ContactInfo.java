@@ -26,7 +26,6 @@ public class ContactInfo {
         this.id = id;
     }
 
-    @Exclude
     public Map<String, Object> getAuthorization() {
         return authorization;
     }

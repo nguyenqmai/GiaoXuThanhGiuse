@@ -9,7 +9,7 @@ import {NGXLogger} from "ngx-logger";
 @Injectable({
     providedIn: 'root'
 })
-export class FcmService {
+export class MyFirebaseMsgService {
     /*
      * notifications are organized into arrays by Date (notime)
      * and stored in storage under key NOTIFICATION_PREFIX + (new Date(notifcation.creationTime).toDateString())
@@ -29,10 +29,10 @@ export class FcmService {
         this.logger.debug('calling fcmService setup ');
         this.firebase.onTokenRefresh().subscribe(newToken => {
             this.logger.debug('got token ' + newToken);
-            this.firebase.onNotificationOpen().subscribe((msg: MyNotification) => {
-                    this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
-                    this.saveNotification(msg);
-                });
+        });
+        this.firebase.onNotificationOpen().subscribe((msg: MyNotification) => {
+            this.logger.info(`got msg inside MyFirebaseMsgService ${JSON.stringify(msg)}`);
+            this.saveNotification(msg);
         });
     }
 
@@ -41,11 +41,6 @@ export class FcmService {
     }
 
     public subscribeToTopic(topic: string) {
-        // if (this.currentToken == null) {
-        //   this.logger.debug("subscribeToTopic: this.currentToken is null")
-        //   return; // should show a modal of issue
-        // }
-
         this.firebase.subscribe(topic).then(good => {
                 this.logger.debug(`subscribeToTopic ${topic} : ${good}`);
             },
@@ -77,7 +72,7 @@ export class FcmService {
                             return;
                         }
                         let ret: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
-                        ret.set(FcmService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
+                        ret.set(MyFirebaseMsgService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
                         observer.next(ret);
                     });
                 }
@@ -91,15 +86,15 @@ export class FcmService {
 
     public async getNotificationKeys(from?: number, to?: number): Promise<string[]> {
         let fromTime: number = Math.min(from == null ? 0 : from, to == null ? Date.now() : to);
-        let fromKey: string = FcmService.buildNotificationKey(fromTime);
-        let toKey: string = FcmService.buildNotificationKey(Math.max(fromTime, to == null ? Date.now() : to));
+        let fromKey: string = MyFirebaseMsgService.buildNotificationKey(fromTime);
+        let toKey: string = MyFirebaseMsgService.buildNotificationKey(Math.max(fromTime, to == null ? Date.now() : to));
 
         let keys = await this.storage.keys();
         keys.sort();
 
         let ret: string[] = [];
         for (let key of keys) {
-            if (FcmService.isNotificationKey(key) && fromKey <= key && key <= toKey) {
+            if (MyFirebaseMsgService.isNotificationKey(key) && fromKey <= key && key <= toKey) {
                 ret.push(key);
             }
         }
@@ -111,7 +106,7 @@ export class FcmService {
             msg.creationTime= Date.now();
 
         // var creationDate = new Date(Number(msg.creationTime));
-        var keyForDate = FcmService.buildNotificationKey(msg.creationTime);
+        var keyForDate = MyFirebaseMsgService.buildNotificationKey(msg.creationTime);
         this.logger.debug(`saveNotification title [${msg.title}] creationTime [${msg.creationTime}] creationTimeType ${typeof msg.creationTime} keyForDate [${keyForDate}]`);
         var prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
 
@@ -128,7 +123,7 @@ export class FcmService {
         if (msg.creationTime == null)
             return true;
 
-        let keyForDate = FcmService.buildNotificationKey(msg.creationTime);
+        let keyForDate = MyFirebaseMsgService.buildNotificationKey(msg.creationTime);
         this.logger.debug(`Find notifications for keyForDate ${keyForDate}`);
 
         let prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
@@ -158,15 +153,15 @@ export class FcmService {
     }
 
     private static isNotificationKey(key: string): boolean {
-        return key == null ? false : key.startsWith(FcmService.NOTIFICATION_PREFIX);
+        return key == null ? false : key.startsWith(MyFirebaseMsgService.NOTIFICATION_PREFIX);
     }
 
     private static extractTimeFromNotificationKey(key: string): number {
-        return key == null ? 0 : key.startsWith(FcmService.NOTIFICATION_PREFIX) ? Number(key.replace(FcmService.NOTIFICATION_PREFIX, "")) : 0;
+        return key == null ? 0 : key.startsWith(MyFirebaseMsgService.NOTIFICATION_PREFIX) ? Number(key.replace(MyFirebaseMsgService.NOTIFICATION_PREFIX, "")) : 0;
     }
 
     private static buildNotificationKey(shouldBeANumber: any): string {
         let date = new Date(Number(shouldBeANumber));
-        return FcmService.NOTIFICATION_PREFIX + `${Math.max(0, Date.parse(date.toDateString()))}`.padStart(15, "0");
+        return MyFirebaseMsgService.NOTIFICATION_PREFIX + `${Math.max(0, Date.parse(date.toDateString()))}`.padStart(15, "0");
     }
 }

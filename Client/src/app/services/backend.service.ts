@@ -27,17 +27,8 @@ export class BackendService {
     constructor(private logger: NGXLogger, private http: HttpClient, private storage: Storage) {
     }
 
-    public authenticate(): Observable<any> {
-        return new Observable(subscriber => {
-            subscriber.next({
-                "owner":"sds",
-                "notification": {
-                    'giao_xu_thanh_giuse': ['CAN_SEND_MSG'],
-                    'Vietnamese_class_02': ['CAN_SEND_MSG'],
-                }
-            });
-            subscriber.complete();
-        });
+    public authorizeUser(userEmail:string, idToken: any): Observable<any> {
+        return this.http.post(`${this.URL_PREFIX}/rest/users/${userEmail}/authorization`, idToken);
     }
 
     public updateUrlPrefix(url : string) {

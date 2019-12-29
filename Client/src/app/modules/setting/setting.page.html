@@ -2,7 +2,7 @@
     <ion-toolbar>
         <ion-title>
             Settings
-            <ion-icon name="apps" (click)="showAdvanceOptions()"></ion-icon>
+<!--            <ion-icon name="apps" (click)="showAdvanceOptions()"></ion-icon>-->
         </ion-title>
     </ion-toolbar>
 </ion-header>
@@ -16,9 +16,9 @@
         <ion-item color="light">
             <ion-label slot="start" color="dark" class="ion-text-wrap">Notifications</ion-label>
 
-            <ion-icon *ngIf="!hasNotificationAuthorizationInfo()"
-                      slot="end" color="medium" name="log-in" (click)="login()"></ion-icon>
-            <ion-icon *ngIf="hasNotificationAuthorizationInfo()"
+            <ion-icon *ngIf="!authorizedToSendNotification()"
+                      slot="end" color="medium" name="log-in" (click)="showLoginModal()"></ion-icon>
+            <ion-icon *ngIf="authorizedToSendNotification()"
                       slot="end" color="medium" name="log-out" (click)="logout()"></ion-icon>
             <ion-icon slot="end" color="medium" name="sync" (click)="refreshTopics()"></ion-icon>
         </ion-item>
@@ -28,19 +28,19 @@
                 <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
                           (click)="tongleGroupExpansion(group)"></ion-icon>
                 <ion-label color="medium" class="ion-text-wrap">{{group.englishName}}</ion-label>
-                <ion-icon *ngIf="hasNotificationAuthorizationInfo()"
+                <ion-icon *ngIf="authorizedToSendNotification()"
                           slot="end" color="medium" name="add" (click)="addTopic(group)"></ion-icon>
             </ion-item>
 
             <div *ngIf="group.expanded">
                 <ion-item *ngFor="let item of group.subtopics">
-                    <ion-label padding-start margin-start color="medium" class="ion-text-wrap">{{item.englishName}}</ion-label>
-                    <ion-toggle *ngIf="!hasNotificationAuthorizationInfo() && !canSendNotification(item)"
-                                margin-end slot="end" [color]="item.subscribed ? 'danger' : 'medium'"
+                    <ion-label color="medium" class="ion-margin-start ion-padding-start ion-text-wrap">{{item.englishName}}</ion-label>
+                    <ion-toggle *ngIf="!authorizedToSendNotification() && !canSendNotification(item)"
+                                class="ion-margin-end" slot="end" [color]="item.subscribed ? 'danger' : 'medium'"
                                 [(ngModel)]="item.subscribed"
                                 (ngModelChange)="checkboxItemClicked(item)"></ion-toggle>
                     <ion-icon *ngIf="canSendNotification(item)"
-                              margin-end slot="end" [color]="medium"
+                              class="ion-margin-end" slot="end" [color]="medium"
                               name="chatbubbles" (click)="sendMessageToTopic(item)"></ion-icon>
 
                 </ion-item>

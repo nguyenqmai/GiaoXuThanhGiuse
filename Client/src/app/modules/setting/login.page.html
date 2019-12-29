@@ -1,0 +1,34 @@
+<ion-header translucent>
+    <ion-toolbar>
+        <ion-title>Login</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+    <ion-list>
+        <ion-item>
+<!--            <ion-label *ngIf="failedReason != null" color="danger">{{failedReason}}</ion-label>-->
+            <ion-textarea *ngIf="failedReason != null" color="danger"
+                          autoGrow="true"
+                          rows="3"
+                          [(ngModel)]="failedReason"
+                          placeholder=""></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+            <ion-input type="text" placeholder="User id/email" clearOnEdit="false" required="true" [(ngModel)]="userEmail"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-input placeholder="Password" [type]="showPassword ? 'text' : 'password'" clearOnEdit="false" required="true" [(ngModel)]="password"></ion-input>
+            <button (click)="onPasswordToggle()" ion-button clear small item-end icon-only><ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon></button>
+        </ion-item>
+
+        <ion-toolbar>
+            <ion-buttons slot="end">
+                <ion-button (click)="cancel()">Cancel</ion-button>
+            </ion-buttons>
+            <ion-buttons slot="end">
+                <ion-button [disabled]="!hasRequiredData()" (click)="login()">Login</ion-button>
+            </ion-buttons>
+        </ion-toolbar>
+    </ion-list>
+</ion-content>

@@ -54,6 +54,7 @@
     "firebase": "^5.7.2",
     "ionic-native-http-connection-backend": "^6.1.1",
     "ionicons": "^4.6.3",
+    "jwt-decode": "^2.2.0",
     "ngx-logger": "^3.3.13",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",

@@ -1,11 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {ModalController, NavParams} from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
-import {FcmService} from '../../services/fcm.service';
+import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {BackendService} from "../../services/backend.service";
 import {TopicNode} from "../../model/topicnode.model";
 import {TopicGroup} from "../../model/topicgroup.model";
 import {SendNotificationModal} from "./sendNotification.modal";
+import {LoginModal} from "./login.modal";
+import {MyUser} from "../../model/MyUser.model";
 
 @Component({
     selector: 'app-setting',
@@ -22,12 +24,12 @@ export class SettingPage implements OnInit {
     backendServerUrls: string[];
     selectedBackEndUrl: string;
 
-    sendNotificationAuth: any;
+    myAuthorizedUser: MyUser;
 
 
     constructor(private logger: NGXLogger,
                 private modalController: ModalController,
-                private fcm: FcmService, private backendService: BackendService) {
+                private fcm: MyFirebaseMsgService, private backendService: BackendService) {
     }
 
     ngOnInit(): void {
@@ -56,14 +58,25 @@ export class SettingPage implements OnInit {
         this.backendService.clearStorage();
     }
 
-    public login() {
-        this.backendService.authenticate().subscribe(data => {
-            this.sendNotificationAuth = data;
-        })
+    public async showLoginModal() {
+
+        const modal = await this.modalController.create({
+            component: LoginModal,
+            componentProps: {
+            }
+        });
+        modal.onDidDismiss().then((response: any) => {
+            if (response && response['data'] && response['data']['userEmail'] && response['data']['idToken'] && response['data']['accessToken']) {
+                this.logger.debug('The response:', response);
+                this.myAuthorizedUser = new MyUser(response['data']['userEmail'], response['data']['idToken'], response['data']['accessToken']);
+            }
+        });
+        await modal.present();
+
     }
 
     public logout() {
-        this.sendNotificationAuth = null;
+        this.myAuthorizedUser = null;
     }
 
     doRefresh(event) {
@@ -153,16 +166,15 @@ export class SettingPage implements OnInit {
         }
     }
 
-    public hasNotificationAuthorizationInfo() {
-        return this.sendNotificationAuth != null && this.sendNotificationAuth['notification'] != null;
+    public authorizedToSendNotification() {
+        return this.myAuthorizedUser != null && this.myAuthorizedUser.authorizedToSendNotification();
     }
 
     public canSendNotification(topic: TopicNode): boolean {
-        if (topic == null || !this.hasNotificationAuthorizationInfo())
+        if (topic == null || !this.authorizedToSendNotification())
             return false;
 
-        if ('CAN_SEND_MSG' == this.sendNotificationAuth.notification[topic.id] || 'CAN_SEND_MSG' == this.sendNotificationAuth.notification[topic.parentId])
-            return true;
+        return this.myAuthorizedUser.canSendNotificationToTopic(topic.parentId, topic.id)
     }
 
     public async sendMessageToTopic(topic: TopicNode) {

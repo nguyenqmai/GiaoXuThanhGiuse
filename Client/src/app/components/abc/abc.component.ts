@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FcmService} from '../../services/fcm.service';
+import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 
 @Component({
     selector: 'notifications',
@@ -7,7 +7,7 @@ import {FcmService} from '../../services/fcm.service';
 })
 export class AbcComponent {
 
-    constructor(private fcmService: FcmService) {
+    constructor(private fcmService: MyFirebaseMsgService) {
     }
 
     public getAllNotifications() {

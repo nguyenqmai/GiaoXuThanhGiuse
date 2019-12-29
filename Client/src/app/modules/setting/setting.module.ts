@@ -5,25 +5,27 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {SettingPage} from './setting.page';
 
-import {FcmService} from '../../services/fcm.service';
 import {SendNotificationModal} from "./sendNotification.modal";
 import {AddTopicModal} from "./addTopic.modal";
+import {LoginModal} from "./login.modal";
+import {AngularFireModule} from "@angular/fire";
+import {AngularFireAuthModule} from "@angular/fire/auth";
 
+import {environment} from "../../../environments/environment";
 @NgModule({
     imports: [
         IonicModule,
         CommonModule,
         FormsModule,
-        RouterModule.forChild([{path: '', component: SettingPage}])
+        RouterModule.forChild([{path: '', component: SettingPage}]),
+        AngularFireModule.initializeApp(environment.firebase),
+        AngularFireAuthModule,
+
     ],
-    declarations: [SettingPage, SendNotificationModal, AddTopicModal],
+    declarations: [SettingPage, SendNotificationModal, AddTopicModal, LoginModal],
     entryComponents: [
-        SendNotificationModal, AddTopicModal
+        SendNotificationModal, AddTopicModal, LoginModal
     ]
 })
 export class SettingPageModule {
-    constructor(
-        private fcm: FcmService
-    ) {
-    }
 }

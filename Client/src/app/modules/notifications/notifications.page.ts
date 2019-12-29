@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FcmService} from '../../services/fcm.service';
+import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
 
 // import { Subscription } from 'rxjs';
@@ -17,7 +17,7 @@ export class NotificationsPage {
     refreshCount: number = 0;
     synchronizing: boolean = false;
 
-    constructor(private fcm: FcmService) {
+    constructor(private fcm: MyFirebaseMsgService) {
     }
 
     ngOnInit() {
@@ -75,7 +75,7 @@ export class NotificationsPage {
     public refreshAllNotifications() {
         setTimeout(() => {
             console.log('refreshAllNotifications spinning has ended');
-        }, 1000);
+        }, 200);
 
         this.fcmNotifications.clear();
         this.fcm.getSavedNotifications().subscribe(values => {

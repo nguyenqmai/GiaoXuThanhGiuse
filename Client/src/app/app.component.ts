@@ -5,7 +5,7 @@ import {Platform, ToastController} from '@ionic/angular';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {AlertController } from '@ionic/angular';
-import {FcmService} from './services/fcm.service';
+import {MyFirebaseMsgService} from './services/myFirebaseMsgService';
 import { NGXLogger } from 'ngx-logger';
 import {BackendService} from "./services/backend.service";
 
@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
         private logger: NGXLogger,
         private platform: Platform,
         private statusBar: StatusBar,
-        // private fcm: FcmService,
+        // private fcm: MyFirebaseMsgService,
         private splashScreen: SplashScreen,
         private alertController: AlertController,
         private toastController: ToastController,
