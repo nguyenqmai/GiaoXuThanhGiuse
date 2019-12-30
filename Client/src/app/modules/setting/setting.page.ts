@@ -24,15 +24,13 @@ export class SettingPage implements OnInit {
     backendServerUrls: string[];
     selectedBackEndUrl: string;
 
-    myAuthorizedUser: MyUser;
-
 
     constructor(private logger: NGXLogger,
                 private modalController: ModalController,
                 private fcm: MyFirebaseMsgService, private backendService: BackendService) {
     }
 
-    ngOnInit(): void {
+    async ngOnInit() {
         this.backendServerUrls = this.backendService.getAvailableUrlPrefixes();
         this.selectedBackEndUrl = this.backendService.getCurrentUrlPrefix();
         this.firstRefreshTime = Date.now();
@@ -68,7 +66,7 @@ export class SettingPage implements OnInit {
         modal.onDidDismiss().then((response: any) => {
             if (response && response['data'] && response['data']['userEmail'] && response['data']['idToken'] && response['data']['accessToken']) {
                 this.logger.debug('The response:', response);
-                this.myAuthorizedUser = new MyUser(response['data']['userEmail'], response['data']['idToken'], response['data']['accessToken']);
+                this.backendService.setAuthorizedUser(new MyUser(response['data']['userEmail'], response['data']['idToken'], response['data']['accessToken']));
             }
         });
         await modal.present();
@@ -76,7 +74,7 @@ export class SettingPage implements OnInit {
     }
 
     public logout() {
-        this.myAuthorizedUser = null;
+        this.backendService.setAuthorizedUser(null);
     }
 
     doRefresh(event) {
@@ -167,14 +165,14 @@ export class SettingPage implements OnInit {
     }
 
     public authorizedToSendNotification() {
-        return this.myAuthorizedUser != null && this.myAuthorizedUser.authorizedToSendNotification();
+        return this.backendService.getAuthorizedUser() != null && this.backendService.getAuthorizedUser().authorizedToSendNotification();
     }
 
     public canSendNotification(topic: TopicNode): boolean {
         if (topic == null || !this.authorizedToSendNotification())
             return false;
 
-        return this.myAuthorizedUser.canSendNotificationToTopic(topic.parentId, topic.id)
+        return this.backendService.getAuthorizedUser().canSendNotificationToTopic(topic.parentId, topic.id)
     }
 
     public async sendMessageToTopic(topic: TopicNode) {

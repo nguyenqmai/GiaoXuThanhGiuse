@@ -25,13 +25,10 @@ export class AppComponent implements OnInit {
         private alertController: AlertController,
         private toastController: ToastController,
         private backendService: BackendService
-    ) {}
+    ) {
+    }
 
     async ngOnInit() {
-        this.backendService.pickAvailableUrl().then(url => {
-            this.backendService.updateUrlPrefix(url);
-        });
-
         await this.platform.ready().then(() => {
             if(this.platform.is('android')) {
                 this.androidSetup();
@@ -41,6 +38,11 @@ export class AppComponent implements OnInit {
             this.splashScreen.hide();
             // this.notificationSetup();
         });
+
+        // await this.backendService.pickAvailableUrl().then(url => {
+        //     this.backendService.updateUrlPrefix(url);
+        // });
+
     }
 
 

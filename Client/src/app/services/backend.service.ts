@@ -7,6 +7,7 @@ import {TopicNode} from "../model/topicnode.model";
 import {Storage} from "@ionic/storage";
 import {TopicGroup} from "../model/topicgroup.model";
 import {NGXLogger} from "ngx-logger";
+import {MyUser} from "../model/MyUser.model";
 
 var SUBSCRIPTIONS_KEY: string = "MY_SUBSCRIPTIONS";
 var URL_PREFIX_KEY: string = "URL_PREFIX";
@@ -17,12 +18,9 @@ var AVAILABLE_URL_PREFIXS: string[]  = ["http://localhost:4200", "http://192.168
     providedIn: 'root'
 })
 export class BackendService {
-
     private URL_PREFIX: string;
-
-
-    private loaded: boolean = false;
-    private currentSubscriptions = new Map<string, TopicGroup>();
+    private myAuthorizedUser: MyUser;
+    private timerHandler: any;
 
     constructor(private logger: NGXLogger, private http: HttpClient, private storage: Storage) {
     }
@@ -33,6 +31,31 @@ export class BackendService {
 
     public updateUrlPrefix(url : string) {
         this.URL_PREFIX = url;
+    }
+
+    public setAuthorizedUser(myAuthorizedUser: MyUser) {
+        if (this.timerHandler) {
+            clearInterval(this.timerHandler);
+        }
+
+        this.myAuthorizedUser = myAuthorizedUser;
+        if (this.myAuthorizedUser) {
+            let expTime = this.myAuthorizedUser.getExpireTime();
+            let timeLeft = (expTime) ? expTime - (Date.now() / 1000) : -1;
+            if (timeLeft > 0) {
+                this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} will expire in ${timeLeft} seconds.`);
+                this.timerHandler = setInterval(() => {
+                    this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} has just expired.`);
+                }, timeLeft*1000);
+            } else {
+                this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} expired already.`);
+                this.myAuthorizedUser = null;
+            }
+        }
+    }
+
+    public getAuthorizedUser(): MyUser {
+        return this. myAuthorizedUser
     }
 
     public getCurrentUrlPrefix(): string {
@@ -58,8 +81,8 @@ export class BackendService {
         }
     }
 
-    public getAllContacts(): Observable<Contact> {
-        return this.http.get<Contact>(`${this.URL_PREFIX}/rest/contacts/`);
+    public getAllContacts(): Observable<Contact[]> {
+        return this.http.get<Contact[]>(`${this.URL_PREFIX}/rest/contacts/`);
     }
 
     public getEventInfo(eventId: string): Observable<EventInfo> {

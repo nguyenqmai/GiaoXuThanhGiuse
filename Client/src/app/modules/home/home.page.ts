@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {BackendService} from "../../services/backend.service";
 import {EventInfo} from "../../model/eventinfo.model";
-import {forkJoin, timer} from "rxjs";
+import {forkJoin, Observable, of, timer} from "rxjs";
 import {NGXLogger} from "ngx-logger";
+import {catchError} from "rxjs/operators";
 
 @Component({
     selector: 'app-home',
@@ -10,14 +11,13 @@ import {NGXLogger} from "ngx-logger";
     styleUrls: ['home.page.scss']
 })
 export class HomePage implements OnInit {
-    private enable: boolean = false;
+    waiting: boolean = false;
     frontPageGroups: EventInfo[] = [];
 
     constructor(private logger: NGXLogger, private backend: BackendService) {
     }
 
-    ngOnInit(): void {
-        this.enable = false;
+    ngOnInit() {
         this.loadData();
     }
 
@@ -30,9 +30,9 @@ export class HomePage implements OnInit {
         }, 1000);
     }
 
-    getEventInfos(): EventInfo[] {
-        return this.frontPageGroups;
-    }
+    // getEventInfos(): EventInfo[] {
+    //     return this.frontPageGroups;
+    // }
 
     public tongleGroupExpansion(group: EventInfo) {
         this.logger.debug('Inside tongleGroupExpansion');
@@ -58,16 +58,30 @@ export class HomePage implements OnInit {
         })
     }
 
-    public loadData() {
-        forkJoin(this.backend.getOfficeHours(),
-            this.backend.getMassSchedule(),
-            this.backend.getConfessionSchedule()).subscribe(([officeHours, massSchedule, confessionSchedule]) => {
-                officeHours.lastUpdated = Date.now();
-                massSchedule.lastUpdated = Date.now();
-                confessionSchedule.lastUpdated = Date.now();
-                this.frontPageGroups.splice(0, this.frontPageGroups.length);
-                this.frontPageGroups.push(officeHours, massSchedule, confessionSchedule);
-                this.enable = true;
+    private retrieveEventInfo(dataType: string, backendFunction: Observable<EventInfo>) {
+        this.logger.info("Retrieving data of ", dataType)
+        this.waiting = true;
+        backendFunction.subscribe(eventInfo => {
+            this.logger.info("Got data for ", dataType)
+            eventInfo.lastUpdated = Date.now();
+            this.frontPageGroups.push(eventInfo);
+            this.frontPageGroups.sort((a,b) => { return a.displayOrder - b.displayOrder});
+            this.waiting = false
+        }, error => {
+            this.logger.info("Got error while retrieving ", dataType, error)
+            this.waiting = false
         })
+    }
+
+    public loadData() {
+        this.frontPageGroups.splice(0, this.frontPageGroups.length);
+        this.retrieveEventInfo("OfficeHours", this.backend.getOfficeHours());
+        this.retrieveEventInfo("MassSchedule", this.backend.getMassSchedule());
+        this.retrieveEventInfo("ConfessionSchedule", this.backend.getConfessionSchedule());
+
+        setTimeout(() => {
+            this.logger.debug('refreshAllNotifications spinning has ended');
+            this.waiting = false
+        }, 200);
     }
 }

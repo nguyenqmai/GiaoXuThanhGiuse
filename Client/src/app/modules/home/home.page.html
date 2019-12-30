@@ -28,7 +28,8 @@
         </ion-card-content>
     </ion-card>
     <ion-list lines="none">
-        <ion-item-group *ngFor="let eventGroup of getEventInfos()">
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+        <ion-item-group *ngFor="let eventGroup of frontPageGroups">
             <ion-item-divider (click)="tongleGroupExpansion(eventGroup)">
                 <ion-label>{{eventGroup.displayName}}</ion-label>
                 <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>

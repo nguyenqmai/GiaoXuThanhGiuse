@@ -15,7 +15,7 @@ export class NotificationsPage {
     groupExpansionControl: Map<number, boolean> = new Map<number, boolean>();
     fcmNotifications: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
     refreshCount: number = 0;
-    synchronizing: boolean = false;
+    waiting: boolean = false;
 
     constructor(private fcm: MyFirebaseMsgService) {
     }
@@ -73,18 +73,25 @@ export class NotificationsPage {
     }
 
     public refreshAllNotifications() {
+
         setTimeout(() => {
             console.log('refreshAllNotifications spinning has ended');
         }, 200);
 
+        this.waiting = true;
         this.fcmNotifications.clear();
-        this.fcm.getSavedNotifications().subscribe(values => {
+        this.fcm.getSavedNotifications().subscribe(
+    values => {
             values.forEach((value: MyNotification[], key: number, map: Map<number, MyNotification[]>) => {
                 this.fcmNotifications.set(key, value);
                 if (!this.groupExpansionControl.has(key)) {
                     this.groupExpansionControl.set(key, false);
                 }
             })
+            this.waiting = false;
+        },
+    error => {
+            this.waiting = false;
         });
     }
 }

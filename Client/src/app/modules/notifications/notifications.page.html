@@ -9,12 +9,17 @@
 
 <ion-content>
     <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-        <ion-refresher-content></ion-refresher-content>
+        <ion-refresher-content
+                pullingIcon="arrow-dropdown"
+                pullingText="Pull to refresh"
+                refreshingSpinner="circles"
+                refreshingText="Refreshing...">
+        </ion-refresher-content>
     </ion-refresher>
 
-
-
     <ion-list lines="full" >
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+
         <ion-item-group *ngFor="let key of getAllNotificationKeys()">
             <ion-item color="light">
                 <ion-icon slot="start" [name]="getGroupExpansionFlag(key) ? 'arrow-dropdown' : 'arrow-dropright'"

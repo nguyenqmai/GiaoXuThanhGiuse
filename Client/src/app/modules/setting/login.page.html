@@ -14,6 +14,7 @@
                           placeholder=""></ion-textarea>
         </ion-item>
 
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
         <ion-item>
             <ion-input type="text" placeholder="User id/email" clearOnEdit="false" required="true" [(ngModel)]="userEmail"></ion-input>
         </ion-item>

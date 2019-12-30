@@ -1,4 +1,4 @@
-import { NgModule} from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule} from '@angular/platform-browser';
 import { RouteReuseStrategy} from '@angular/router';
 import { FormsModule} from '@angular/forms';
@@ -42,9 +42,20 @@ import { ExpandableComponent} from './components/expandable/expandable.component
         {provide: HttpBackend, useClass: NativeHttpFallback, deps: [Platform, NativeHttpBackend, HttpXhrBackend]},
         Firebase,
         BackendService,
-
+        {provide: APP_INITIALIZER, useFactory: initApp, deps: [BackendService], multi: true }
     ],
     bootstrap: [AppComponent]
 })
 export class AppModule {
+}
+
+
+export function initApp(backendService: BackendService) {
+    return () => {
+        return backendService.pickAvailableUrl().then((resp) => {
+            console.log('Response 1 - ', resp);
+            backendService.updateUrlPrefix(resp);
+        });
+    };
+
 }

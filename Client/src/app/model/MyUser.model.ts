@@ -23,6 +23,9 @@ export class MyUser {
                         (<string[]>this.accessToken['claims']['notifications'][topicId]).includes("CAN_SEND_MSG"));
     }
 
+    public getExpireTime(): number {
+        return this.idToken["exp"];
+    }
 }
 
 
