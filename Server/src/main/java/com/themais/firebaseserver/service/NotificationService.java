@@ -36,6 +36,7 @@ public class NotificationService {
                 if (msg.getTopic() == null)
                     continue;
 
+                logger.info("Processing topic {} msg id {}  ", msg.getTopic(), msg.getId());
                 fireStorageService.updateStatus(msg.getId(), sendBaseMessage(msg), null);
             } catch (Exception e) {
                 fireStorageService.updateStatus(msg.getId(), BaseMessage.Status.EXCEPTION, exceptionToString(e));

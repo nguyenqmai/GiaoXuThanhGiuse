@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
+import {NGXLogger} from "ngx-logger";
 
 // import { Subscription } from 'rxjs';
 
@@ -11,17 +12,21 @@ import {MyNotification} from '../../model/fcmnotification.model';
 })
 
 
-export class NotificationsPage {
+export class NotificationsPage implements OnInit {
     groupExpansionControl: Map<number, boolean> = new Map<number, boolean>();
     fcmNotifications: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
     refreshCount: number = 0;
     waiting: boolean = false;
 
-    constructor(private fcm: MyFirebaseMsgService) {
+    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService) {
     }
 
     ngOnInit() {
         this.refreshAllNotifications();
+        this.fcm.onNotificationOpen().subscribe(data => {
+            this.logger.info(`got msg inside NotificationsPage ${JSON.stringify(data)}`);
+            this.refreshAllNotifications();
+        });
     }
 
     doRefresh(event) {
@@ -76,6 +81,7 @@ export class NotificationsPage {
 
         setTimeout(() => {
             console.log('refreshAllNotifications spinning has ended');
+            this.waiting = false;
         }, 200);
 
         this.waiting = true;

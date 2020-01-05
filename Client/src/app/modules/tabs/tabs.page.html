@@ -1,24 +1,21 @@
-<ion-tabs>
+<ion-tabs (ionTabsWillChange)="ionTabsWillChange($event)" (ionTabsDidChange)="ionTabsDidChange($event)">
 
     <ion-tab-bar slot="bottom">
         <ion-tab-button tab="home">
             <ion-icon name="home"></ion-icon>
-<!--            <ion-label>Home</ion-label>-->
         </ion-tab-button>
 
         <ion-tab-button tab="notifications">
+            <ion-badge *ngIf="hasNewNotificationFlag" style="position: absolute">#</ion-badge>
             <ion-icon name="notifications"></ion-icon>
-<!--            <ion-label>Notifications</ion-label>-->
         </ion-tab-button>
 
         <ion-tab-button tab="contacts">
             <ion-icon name="contacts"></ion-icon>
-<!--            <ion-label>Tab Two</ion-label>-->
         </ion-tab-button>
 
         <ion-tab-button tab="setting">
             <ion-icon name="settings"></ion-icon>
-<!--            <ion-label>Settings</ion-label>-->
         </ion-tab-button>
     </ion-tab-bar>
 

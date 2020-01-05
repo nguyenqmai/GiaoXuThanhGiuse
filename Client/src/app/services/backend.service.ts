@@ -45,7 +45,8 @@ export class BackendService {
             if (timeLeft > 0) {
                 this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} will expire in ${timeLeft} seconds.`);
                 this.timerHandler = setInterval(() => {
-                    this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} has just expired.`);
+                    this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} has just expired. Logout`);
+                    this.setAuthorizedUser(null);
                 }, timeLeft*1000);
             } else {
                 this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} expired already.`);

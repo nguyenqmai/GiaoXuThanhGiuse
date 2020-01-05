@@ -91,7 +91,9 @@ public class FireStorageService {
             newMessage.setTopic(topic);
             newMessage.setCreationTime(System.currentTimeMillis());
             newMessage.setStatus(BaseMessage.Status.NEW);
-            firestore.collection(MyCollections.baseMessages.name()).document().set(newMessage).get();
+            synchronized (firestore) {
+                firestore.collection(MyCollections.baseMessages.name()).document(String.valueOf(System.currentTimeMillis())).set(newMessage).get();
+            }
             return true;
         } catch (Exception e) {
             return false;
