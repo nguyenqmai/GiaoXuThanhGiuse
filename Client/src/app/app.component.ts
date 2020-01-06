@@ -5,9 +5,7 @@ import {Platform, ToastController} from '@ionic/angular';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {AlertController } from '@ionic/angular';
-import {MyFirebaseMsgService} from './services/myFirebaseMsgService';
 import { NGXLogger } from 'ngx-logger';
-import {BackendService} from "./services/backend.service";
 
 @Component({
     selector: 'app-root',
@@ -20,29 +18,20 @@ export class AppComponent implements OnInit {
         private logger: NGXLogger,
         private platform: Platform,
         private statusBar: StatusBar,
-        // private fcm: MyFirebaseMsgService,
         private splashScreen: SplashScreen,
         private alertController: AlertController,
-        private toastController: ToastController,
-        private backendService: BackendService
-    ) {
+        private toastController: ToastController) {
     }
 
     async ngOnInit() {
         await this.platform.ready().then(() => {
-            if(this.platform.is('android')) {
+            if (this.platform.is('android')) {
                 this.androidSetup();
             } else {
                 this.statusBar.styleDefault();
             }
             this.splashScreen.hide();
-            // this.notificationSetup();
         });
-
-        // await this.backendService.pickAvailableUrl().then(url => {
-        //     this.backendService.updateUrlPrefix(url);
-        // });
-
     }
 
 
@@ -85,17 +74,9 @@ export class AppComponent implements OnInit {
 
     }
 
-    // private notificationSetup() {
-    //     this.fcm.onNotificationOpen().subscribe((msg: any) => {
-    //         this.logger.info(`got msg inside app.components.ts ${JSON.stringify(msg)}`);
-    //         this.fcm.saveNotification(msg);
-    //     });
-    // }
-
     private androidSetup() {
         this.statusBar.styleLightContent();
         this.platform.backButton.subscribeWithPriority(0, () => {
-            // this.presentToast(`window.location.pathname ${window.location.pathname}`);
             this.logger.info(`window.location.pathname ${window.location.pathname}`);
             this.presentAlert();
           });

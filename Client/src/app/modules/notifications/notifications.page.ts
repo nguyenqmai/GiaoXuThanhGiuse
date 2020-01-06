@@ -1,9 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, NgZone, OnInit} from '@angular/core';
+import {NGXLogger} from 'ngx-logger';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
-import {NGXLogger} from "ngx-logger";
 
-// import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-notifications',
@@ -15,42 +14,63 @@ import {NGXLogger} from "ngx-logger";
 export class NotificationsPage implements OnInit {
     groupExpansionControl: Map<number, boolean> = new Map<number, boolean>();
     fcmNotifications: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
-    refreshCount: number = 0;
-    waiting: boolean = false;
+    notificationKeys: number[];
+    searchText = '';
+    refreshCount = 0;
+    waiting = false;
 
-    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService) {
+    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService, private ngZone: NgZone) {
     }
 
     ngOnInit() {
         this.refreshAllNotifications();
         this.fcm.onNotificationOpen().subscribe(data => {
             this.logger.info(`got msg inside NotificationsPage ${JSON.stringify(data)}`);
-            this.refreshAllNotifications();
+            this.ngZone.run(() => { this.refreshAllNotifications(); });
         });
     }
 
     doRefresh(event) {
-        console.log('Begin async operation');
+        this.logger.debug('Begin async operation');
         this.refreshAllNotifications();
         setTimeout(() => {
-            console.log('Async operation has ended');
+            this.logger.debug('Async operation has ended');
             this.refreshCount += 1;
             event.target.complete();
         }, 1000);
     }
 
-    public getAllNotificationKeys(): number[] {
-        return Array.from(this.fcmNotifications.keys()).sort().reverse();
+    onSearchInput(event) {
+        // this.logger.debug(`entering text [${event.detail.data}]`);
+        if (this.searchText.length >= 1) {
+            this.ngZone.run(() => {
+                // this.logger.debug(`searchText [${this.searchText}]`);
+                this.notificationKeys = Array.from(this.fcmNotifications.keys()).sort().reverse();
+            });
+        }
     }
 
     public getNotificationsOfKey(key: number): MyNotification[] {
-        return this.fcmNotifications.get(key);
+        if (this.searchText == null || this.searchText.length === 0) {
+            return this.fcmNotifications.get(key);
+        }
+
+        const lowerCaseSearchText = this.searchText.toLowerCase();
+        const ret: MyNotification[] = [];
+        for (const msg of this.fcmNotifications.get(key)) {
+            if (msg.title.toLowerCase().indexOf(lowerCaseSearchText) >= 0 ||
+                msg.body.toLowerCase().indexOf(lowerCaseSearchText) >= 0) {
+                ret.push(msg);
+            }
+        }
+        return ret;
+
     }
 
     public insertRandomNotification() {
-        let millis = Date.now();
-        let notification = {
-            key: 'key-' + millis,
+        const millis = Date.now();
+        const notification = {
+            id: '' + millis,
             creationTime: millis,
             tap: false,
             topic: 'topic-' + millis,
@@ -70,7 +90,7 @@ export class NotificationsPage implements OnInit {
     }
 
     public tongleGroupExpansion(key: number) {
-        this.groupExpansionControl.set(key, !this.groupExpansionControl.get(key))
+        this.groupExpansionControl.set(key, !this.groupExpansionControl.get(key));
     }
 
     public getGroupExpansionFlag(key: number) {
@@ -78,12 +98,6 @@ export class NotificationsPage implements OnInit {
     }
 
     public refreshAllNotifications() {
-
-        setTimeout(() => {
-            console.log('refreshAllNotifications spinning has ended');
-            this.waiting = false;
-        }, 200);
-
         this.waiting = true;
         this.fcmNotifications.clear();
         this.fcm.getSavedNotifications().subscribe(
@@ -93,10 +107,14 @@ export class NotificationsPage implements OnInit {
                 if (!this.groupExpansionControl.has(key)) {
                     this.groupExpansionControl.set(key, false);
                 }
-            })
+            });
             this.waiting = false;
+            this.notificationKeys = Array.from(this.fcmNotifications.keys()).sort().reverse();
         },
     error => {
+            this.waiting = false;
+        },
+        () => {
             this.waiting = false;
         });
     }

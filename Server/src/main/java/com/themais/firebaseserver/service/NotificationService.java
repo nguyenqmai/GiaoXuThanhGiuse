@@ -54,6 +54,7 @@ public class NotificationService {
             builder.setNotification(new Notification(msg.getTitle(), msg.getBody()));
 
 
+        builder.putData("id", msg.getId());
         builder.putData("topic", msg.getTopic());
         builder.putData("title", msg.getTitle());
         builder.putData("body", msg.getBody());

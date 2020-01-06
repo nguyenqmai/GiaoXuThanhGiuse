@@ -2,7 +2,7 @@ import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule} from '@angular/platform-browser';
 import { RouteReuseStrategy} from '@angular/router';
 import { FormsModule} from '@angular/forms';
-import { HttpBackend, HttpXhrBackend} from "@angular/common/http";
+import { HttpBackend, HttpXhrBackend} from '@angular/common/http';
 
 import { IonicStorageModule} from '@ionic/storage';
 import { IonicModule, IonicRouteStrategy, Platform} from '@ionic/angular';
@@ -18,13 +18,15 @@ import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 
 import { AppRoutingModule} from './app-routing.module';
 import { AppComponent} from './app.component';
-import { BackendService} from "./services/backend.service";
+import { BackendService} from './services/backend.service';
+import {MyFirebaseMsgService} from './services/myFirebaseMsgService';
+
 import { AbcComponent} from './components/abc/abc.component';
 import { ExpandableComponent} from './components/expandable/expandable.component';
 
 
 @NgModule({
-    declarations: [AppComponent, ExpandableComponent, AbcComponent,],
+    declarations: [AppComponent, ExpandableComponent, AbcComponent],
     entryComponents: [],
     imports: [
         BrowserModule,
@@ -42,6 +44,7 @@ import { ExpandableComponent} from './components/expandable/expandable.component
         {provide: HttpBackend, useClass: NativeHttpFallback, deps: [Platform, NativeHttpBackend, HttpXhrBackend]},
         Firebase,
         BackendService,
+        MyFirebaseMsgService,
         {provide: APP_INITIALIZER, useFactory: initApp, deps: [BackendService], multi: true }
     ],
     bootstrap: [AppComponent]

@@ -6,7 +6,7 @@
         </ion-tab-button>
 
         <ion-tab-button tab="notifications">
-            <ion-badge *ngIf="hasNewNotificationFlag" style="position: absolute">#</ion-badge>
+            <ion-badge *ngIf="newNotificationCount > 0" style="position: absolute">{{newNotificationCount}}</ion-badge>
             <ion-icon name="notifications"></ion-icon>
         </ion-tab-button>
 

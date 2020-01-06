@@ -8,40 +8,38 @@ import {NGXLogger} from 'ngx-logger';
     styleUrls: ['tabs.page.scss']
 })
 export class TabsPage implements OnInit {
-    hasNewNotificationFlag: boolean = false;
+    newNotificationCount = 0;
+    currentTab = '';
+    nextTab = '';
 
     constructor(private logger: NGXLogger,
                 private fcm: MyFirebaseMsgService,
-                private ngZone: NgZone,
-                private ref: ChangeDetectorRef) {
-        // ref.detach();
-        // setInterval(() => {
-        //     this.ref.detectChanges();
-        // }, 5000);
+                private ngZone: NgZone) {
     }
 
-    public hasNewNotification(): boolean {
-        return this.hasNewNotificationFlag;
-    }
     ngOnInit() {
         this.fcm.onNotificationOpen().subscribe(data => {
             this.logger.info(`got msg inside TabsPage ${JSON.stringify(data)}`);
-            this.ngZone.run(() => {
-                this.hasNewNotificationFlag = true;
-            });
-            // this.ref.detectChanges();
+            if (this.currentTab !== 'notifications') {
+                this.ngZone.run(() => {
+                    this.newNotificationCount += 1;
+                });
+            }
         });
     }
 
     ionTabsDidChange(event: any) {
-        this.logger.info(`ionTabsDidChange to  ${event['tab']}`);
-        if (event['tab'] === 'notifications') {
-            this.hasNewNotificationFlag = false;
+        this.currentTab = event['tab'];
+        this.nextTab = '';
+        this.logger.info(`ionTabsDidChange to  ${this.currentTab}`);
+        if (this.currentTab === 'notifications') {
+            this.newNotificationCount = 0;
         }
     }
 
     ionTabsWillChange(event: any) {
-        this.logger.info(`ionTabsWillChange to  ${event['tab']}`);
+        this.nextTab = event['tab'];
+        this.logger.info(`ionTabsWillChange to  ${this.nextTab}`);
     }
 
 }

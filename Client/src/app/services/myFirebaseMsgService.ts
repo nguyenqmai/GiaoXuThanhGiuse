@@ -1,10 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Firebase} from '@ionic-native/firebase/ngx';
-import {Observable, Subject} from 'rxjs';
-
 import {Storage} from '@ionic/storage';
+import {Observable, Subject} from 'rxjs';
+import {NGXLogger} from 'ngx-logger';
+
 import {MyNotification} from '../model/fcmnotification.model';
-import {NGXLogger} from "ngx-logger";
+
 
 @Injectable({
     providedIn: 'root'
@@ -15,7 +16,7 @@ export class MyFirebaseMsgService {
      * and stored in storage under key NOTIFICATION_PREFIX + (new Date(notifcation.creationTime).toDateString())
      */
 
-    public static NOTIFICATION_PREFIX: string = 'notifications-';
+    public static NOTIFICATION_PREFIX = 'notifications-';
     public static MILLIS_PER_DAY: number = 1000 * 60 * 60 * 24;
     private currentToken: string = null;
     private newNotificationSubject: Subject<MyNotification> = new Subject<MyNotification>();
@@ -25,12 +26,14 @@ export class MyFirebaseMsgService {
     }
 
     private static extractTimeFromNotificationKey(key: string): number {
-        return key == null ? 0 : key.startsWith(MyFirebaseMsgService.NOTIFICATION_PREFIX) ? Number(key.replace(MyFirebaseMsgService.NOTIFICATION_PREFIX, "")) : 0;
+        return key == null ? 0 :
+            key.startsWith(MyFirebaseMsgService.NOTIFICATION_PREFIX) ?
+                Number(key.replace(MyFirebaseMsgService.NOTIFICATION_PREFIX, '')) : 0;
     }
 
     private static buildNotificationKey(shouldBeANumber: any): string {
         const date = new Date(Number(shouldBeANumber));
-        return MyFirebaseMsgService.NOTIFICATION_PREFIX + `${Math.max(0, Date.parse(date.toDateString()))}`.padStart(15, "0");
+        return MyFirebaseMsgService.NOTIFICATION_PREFIX + `${Math.max(0, Date.parse(date.toDateString()))}`.padStart(15, '0');
     }
 
     constructor(private logger: NGXLogger,
@@ -85,36 +88,38 @@ export class MyFirebaseMsgService {
     }
 
     public getSavedNotifications(from?: number, to?: number): Observable<Map<number, MyNotification[]>> {
-        return new Observable(observer => {
+        return new Observable(subscriber => {
             this.getNotificationKeys(from, to).then(keys => {
-                for (let keyForDate of keys) {
-                    this.storage.get(keyForDate).then((prevNotifications: MyNotification[]) => {
-                        if (prevNotifications == null || prevNotifications.length === 0) {
-                            return;
-                        }
-                        let ret: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
-                        ret.set(MyFirebaseMsgService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
-                        observer.next(ret);
-                    });
+                if (keys.length === 0) {
+                    subscriber.next(new Map<number, MyNotification[]>());
+                } else {
+                    for (const keyForDate of keys) {
+                        this.logger.debug(`getSavedNotifications working on key ${keyForDate}`);
+                        this.storage.get(keyForDate).then((prevNotifications: MyNotification[]) => {
+                            if (prevNotifications == null || prevNotifications.length === 0) {
+                                return;
+                            }
+                            const ret: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
+                            ret.set(MyFirebaseMsgService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
+                            subscriber.next(ret);
+                        });
+                    }
                 }
-            })
-            return {
-                unsubscribe() {
-                }
-            };
+                return;
+            });
         });
     }
 
     public async getNotificationKeys(from?: number, to?: number): Promise<string[]> {
-        let fromTime: number = Math.min(from == null ? 0 : from, to == null ? Date.now() : to);
-        let fromKey: string = MyFirebaseMsgService.buildNotificationKey(fromTime);
-        let toKey: string = MyFirebaseMsgService.buildNotificationKey(Math.max(fromTime, to == null ? Date.now() : to));
+        const fromTime: number = Math.min(from == null ? 0 : from, to == null ? Date.now() : to);
+        const fromKey: string = MyFirebaseMsgService.buildNotificationKey(fromTime);
+        const toKey: string = MyFirebaseMsgService.buildNotificationKey(Math.max(fromTime, to == null ? Date.now() : to));
 
-        let keys = await this.storage.keys();
+        const keys = await this.storage.keys();
         keys.sort();
 
-        let ret: string[] = [];
-        for (let key of keys) {
+        const ret: string[] = [];
+        for (const key of keys) {
             if (MyFirebaseMsgService.isNotificationKey(key) && fromKey <= key && key <= toKey) {
                 ret.push(key);
             }
@@ -129,7 +134,11 @@ export class MyFirebaseMsgService {
 
         // var creationDate = new Date(Number(msg.creationTime));
         const keyForDate = MyFirebaseMsgService.buildNotificationKey(msg.creationTime);
-        this.logger.debug(`saveNotification title [${msg.title}] creationTime [${msg.creationTime}] creationTimeType ${typeof msg.creationTime} keyForDate [${keyForDate}]`);
+        this.logger.debug(`saveNotification` +
+            ` title [${msg.title}]` +
+            ` creationTime [${msg.creationTime}]` +
+            ` creationTimeType [${typeof msg.creationTime}]` +
+            ` keyForDate [${keyForDate}]`);
         let prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
 
         if (prevNotifications == null) {
@@ -137,9 +146,9 @@ export class MyFirebaseMsgService {
         }
         this.removeDuplicatedNotification(prevNotifications, msg);
         prevNotifications.unshift(msg);
-        prevNotifications.sort((a, b) => { return b.creationTime - a.creationTime});
+        prevNotifications.sort((a, b) => b.creationTime - a.creationTime);
 
-        let ret = await this.storage.set(keyForDate, prevNotifications);
+        const ret = await this.storage.set(keyForDate, prevNotifications);
         return ret;
     }
 
