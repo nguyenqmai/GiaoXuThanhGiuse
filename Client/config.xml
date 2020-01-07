@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.themais.pingme" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>GiaoXuThanhGiuse</name>
+<widget id="com.bvn.cltjoshepparish" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>GiaoXuGiuseCLTApp</name>
     <description>Communication App for Vietnamese Saint Joseph Catholic Parish</description>
     <author email="nguyenqmai@gmail.com" href="http://ionicframework.com/">Nguyen Q Mai</author>
     <content src="index.html" />

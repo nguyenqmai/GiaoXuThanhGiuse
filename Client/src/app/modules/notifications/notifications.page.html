@@ -20,7 +20,7 @@
     <ion-list lines="full" >
         <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
 
-        <ion-searchbar [(ngModel)]="searchText" (ionInput)="onSearchInput($event)"></ion-searchbar>
+        <ion-searchbar animated="true" [(ngModel)]="searchText" (ionInput)="onSearchInput($event)"></ion-searchbar>
         <ion-item-group *ngFor="let key of notificationKeys">
             <ion-item color="light">
                 <ion-icon slot="start" [name]="getGroupExpansionFlag(key) ? 'arrow-dropdown' : 'arrow-dropright'"

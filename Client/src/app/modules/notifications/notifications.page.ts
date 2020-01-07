@@ -102,6 +102,7 @@ export class NotificationsPage implements OnInit {
         this.fcmNotifications.clear();
         this.fcm.getSavedNotifications().subscribe(
     values => {
+            this.logger.info('Notification.refreshAllNotifications(): next value');
             values.forEach((value: MyNotification[], key: number, map: Map<number, MyNotification[]>) => {
                 this.fcmNotifications.set(key, value);
                 if (!this.groupExpansionControl.has(key)) {
@@ -112,9 +113,11 @@ export class NotificationsPage implements OnInit {
             this.notificationKeys = Array.from(this.fcmNotifications.keys()).sort().reverse();
         },
     error => {
+            this.logger.info('Notification.refreshAllNotifications(): error');
             this.waiting = false;
         },
         () => {
+            this.logger.info('Notification.refreshAllNotifications(): complete');
             this.waiting = false;
         });
     }

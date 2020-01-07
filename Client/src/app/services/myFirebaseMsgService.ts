@@ -47,11 +47,12 @@ export class MyFirebaseMsgService {
         this.firebase.onTokenRefresh().subscribe(newToken => {
             this.logger.debug('got token ' + newToken);
         });
-        this.firebase.onNotificationOpen().subscribe(this.newNotificationSubject);
 
-        this.newNotificationSubject.subscribe((msg: MyNotification) => {
+        this.firebase.onNotificationOpen().subscribe((msg: MyNotification) => {
             this.logger.info(`got msg inside MyFirebaseMsgService ${JSON.stringify(msg)}`);
-            this.saveNotification(msg);
+            this.saveNotification(msg).then((savedMsg) => {
+                this.newNotificationSubject.next(savedMsg);
+            });
             // this.firebase.clearAllNotifications();
         });
     }
@@ -127,7 +128,7 @@ export class MyFirebaseMsgService {
         return ret;
     }
 
-    public async saveNotification(msg: MyNotification) {
+    public async saveNotification(msg: MyNotification): Promise<MyNotification> {
         if (msg.creationTime == null) {
             msg.creationTime = Date.now();
         }
@@ -149,7 +150,7 @@ export class MyFirebaseMsgService {
         prevNotifications.sort((a, b) => b.creationTime - a.creationTime);
 
         const ret = await this.storage.set(keyForDate, prevNotifications);
-        return ret;
+        return msg;
     }
 
     private removeDuplicatedNotification(prevNotifications: MyNotification[], msg: MyNotification): boolean {

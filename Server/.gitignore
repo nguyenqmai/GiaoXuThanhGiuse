@@ -1,7 +1,7 @@
 .gradle
 /build/
 !gradle/wrapper/gradle-wrapper.jar
-my-first-project0123-firebase-adminsdk-pjw6z-d05f5c55b5.json
+*-firebase-adminsdk-*.json
 
 ### STS ###
 .apt_generated
