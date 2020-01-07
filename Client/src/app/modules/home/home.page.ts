@@ -1,9 +1,8 @@
 import {Component, OnInit} from '@angular/core';
-import {BackendService} from "../../services/backend.service";
-import {EventInfo} from "../../model/eventinfo.model";
-import {forkJoin, Observable, of, timer} from "rxjs";
-import {NGXLogger} from "ngx-logger";
-import {catchError} from "rxjs/operators";
+import {BackendService} from '../../services/backend.service';
+import {EventInfo} from '../../model/eventinfo.model';
+import {Observable} from 'rxjs';
+import {NGXLogger} from 'ngx-logger';
 
 @Component({
     selector: 'app-home',
@@ -11,7 +10,7 @@ import {catchError} from "rxjs/operators";
     styleUrls: ['home.page.scss']
 })
 export class HomePage implements OnInit {
-    waiting: boolean = false;
+    waiting = false;
     frontPageGroups: EventInfo[] = [];
 
     constructor(private logger: NGXLogger, private backend: BackendService) {
@@ -37,9 +36,9 @@ export class HomePage implements OnInit {
     public tongleGroupExpansion(group: EventInfo) {
         this.logger.debug('Inside tongleGroupExpansion');
         group.expanded = !group.expanded;
-        let delta = Date.now() - group.lastUpdated
+        const delta = Date.now() - group.lastUpdated;
 
-        if (delta/1000/60 > 30) { // update every 40 minutes
+        if (delta / 1000 / 60 > 30) { // update every 40 minutes
             this.refreshEventInfo(group);
         } else {
             this.logger.debug('No need to refresh data');
@@ -49,39 +48,39 @@ export class HomePage implements OnInit {
     public refreshEventInfo(group: EventInfo) {
         this.logger.debug('Need to refresh data');
         this.backend.getEventInfo(group.id).subscribe(event => {
-            for (var index in this.frontPageGroups) {
-                if (this.frontPageGroups[index].id == event.id) {
+            for (const index in this.frontPageGroups) {
+                if (this.frontPageGroups[index].id === event.id) {
                     this.frontPageGroups[index] = event;
                     break;
                 }
             }
-        })
+        });
     }
 
     private retrieveEventInfo(dataType: string, backendFunction: Observable<EventInfo>) {
-        this.logger.info("Retrieving data of ", dataType)
+        this.logger.info('Retrieving data of ', dataType);
         this.waiting = true;
         backendFunction.subscribe(eventInfo => {
-            this.logger.info("Got data for ", dataType)
+            this.logger.info('Got data for ', dataType);
             eventInfo.lastUpdated = Date.now();
             this.frontPageGroups.push(eventInfo);
-            this.frontPageGroups.sort((a,b) => { return a.displayOrder - b.displayOrder});
-            this.waiting = false
+            this.frontPageGroups.sort((a, b) => a.displayOrder - b.displayOrder);
+            this.waiting = false;
         }, error => {
-            this.logger.info("Got error while retrieving ", dataType, error)
-            this.waiting = false
-        })
+            this.logger.info('Got error while retrieving ', dataType, error);
+            this.waiting = false;
+        });
     }
 
     public loadData() {
         this.frontPageGroups.splice(0, this.frontPageGroups.length);
-        this.retrieveEventInfo("OfficeHours", this.backend.getOfficeHours());
-        this.retrieveEventInfo("MassSchedule", this.backend.getMassSchedule());
-        this.retrieveEventInfo("ConfessionSchedule", this.backend.getConfessionSchedule());
+        this.retrieveEventInfo('OfficeHours', this.backend.getOfficeHours());
+        this.retrieveEventInfo('MassSchedule', this.backend.getMassSchedule());
+        this.retrieveEventInfo('ConfessionSchedule', this.backend.getConfessionSchedule());
 
         setTimeout(() => {
             this.logger.debug('refreshAllNotifications spinning has ended');
-            this.waiting = false
+            this.waiting = false;
         }, 200);
     }
 }

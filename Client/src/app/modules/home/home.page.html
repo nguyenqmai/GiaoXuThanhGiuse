@@ -30,13 +30,19 @@
     <ion-list lines="none">
         <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
         <ion-item-group *ngFor="let eventGroup of frontPageGroups">
-            <ion-item-divider (click)="tongleGroupExpansion(eventGroup)">
-                <ion-label>{{eventGroup.displayName}}</ion-label>
-                <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
-            </ion-item-divider>
+            <ion-item>
+                <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
+                          (click)="tongleGroupExpansion(eventGroup)"></ion-icon>
+                <ion-label class="ion-text-wrap">{{eventGroup.displayName}}</ion-label>
+            </ion-item>
+
+<!--            <ion-item-divider (click)="tongleGroupExpansion(eventGroup)">-->
+<!--                <ion-label>{{eventGroup.displayName}}</ion-label>-->
+<!--                <ion-icon slot="start" [name]="eventGroup.expanded ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>-->
+<!--            </ion-item-divider>-->
 
              <div *ngIf="eventGroup.expanded">
-                 <ion-card button="true" (click)="tongleGroupExpansion(eventGroup)">
+                 <ion-card color="light" button="true" (click)="tongleGroupExpansion(eventGroup)">
                      <ion-card-content>
                      <div *ngIf="eventGroup.contacts && eventGroup.contacts.length > 0">
                      Please contact:
