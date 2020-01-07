@@ -1,20 +1,17 @@
 import {Component, Input} from '@angular/core';
-import {ModalController} from "@ionic/angular";
-import {TopicNode} from "../../model/topicnode.model";
-import {BackendService} from "../../services/backend.service";
-import {AngularFireAuth} from "@angular/fire/auth";
-
+import {AngularFireAuth} from '@angular/fire/auth';
+import {ModalController} from '@ionic/angular';
+import {TopicNode} from '../../model/topicnode.model';
+import {BackendService} from '../../services/backend.service';
 
 @Component({
     templateUrl: 'login.page.html',
     selector: 'loginModal'
 })
-export class LoginModal{
-    @Input() topic: TopicNode;
-
+export class LoginModal {
     failedReason: any = null;
-    showPassword: boolean = false;
-    waiting: boolean = false;
+    showPassword = false;
+    waiting = false;
 
     userEmail: string;
     password: string;
@@ -41,25 +38,25 @@ export class LoginModal{
         this.waiting = true;
         this.firebaseAuth.auth.signInWithEmailAndPassword(this.userEmail, this.password)
         .then(userCredential => {
-            let user = this.firebaseAuth.auth.currentUser;
+            const user = this.firebaseAuth.auth.currentUser;
             if (!user.emailVerified) {
-                this.failedReason = "Please check your email then confirm by clicking the verification link in the email."
+                this.failedReason = 'Please check your email then confirm by clicking the verification link in the email.';
                 this.firebaseAuth.auth.currentUser.sendEmailVerification().finally(() => {
                     this.waiting = false;
                     return;
-                })
+                });
             } else {
                 user.getIdToken(false)
                 .then(idToken => {
                     this.backendService.authorizeUser(this.userEmail, idToken).subscribe(authorizationResult => {
-                        if (authorizationResult["accessToken"] == "") {
-                            this.failedReason = authorizationResult["failedReason"];
+                        if (authorizationResult['accessToken'] === '') {
+                            this.failedReason = authorizationResult['failedReason'];
                             return;
                         }
                         return this.modalController.dismiss({
                             'userEmail': this.userEmail,
                             'idToken': idToken,
-                            'accessToken': authorizationResult["accessToken"]
+                            'accessToken': authorizationResult['accessToken']
                         });
                     });
                 })
@@ -69,7 +66,7 @@ export class LoginModal{
                 })
                 .finally(() => {
                     this.waiting = false;
-                })
+                });
             }
         })
         .catch(failedReason => {
@@ -78,6 +75,6 @@ export class LoginModal{
         })
         .finally(() => {
             this.waiting = false;
-        })
+        });
     }
 }

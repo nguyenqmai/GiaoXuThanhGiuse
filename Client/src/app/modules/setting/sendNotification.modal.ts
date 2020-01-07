@@ -1,11 +1,12 @@
 import {Component, Input} from '@angular/core';
-import {TopicNode} from "../../model/topicnode.model";
-import {ModalController} from "@ionic/angular";
+import {ModalController} from '@ionic/angular';
+import {TopicNode} from '../../model/topicnode.model';
+
 @Component({
     templateUrl: 'sendNotification.page.html',
     selector: 'sendNotificationModal'
 })
-export class SendNotificationModal{
+export class SendNotificationModal {
     @Input() topic: TopicNode;
 
     title: string;

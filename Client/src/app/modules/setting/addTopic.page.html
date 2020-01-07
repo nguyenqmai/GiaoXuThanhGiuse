@@ -1,45 +1,39 @@
-<!--<ion-header translucent>-->
-<!--    <ion-toolbar>-->
-<!--        <ion-title></ion-title>-->
-<!--    </ion-toolbar>-->
-<!--</ion-header>-->
+<ion-header translucent>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>{{group.englishName}}</ion-title>
+    </ion-toolbar>
+</ion-header>
 <ion-content fullscreen>
     <ion-list>
         <ion-item>
+            <ion-textarea *ngIf="failedReason != null" color="danger"
+                          autoGrow="true"
+                          rows="3"
+                          [(ngModel)]="failedReason"
+                          placeholder=""></ion-textarea>
+        </ion-item>
+
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+        <ion-item>
+            <ion-label position="stacked">English name of new topic<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="englishName"></ion-input>
         </ion-item>
 
         <ion-item>
-            <ion-label position="stacked">Title <ion-text color="danger">*</ion-text></ion-label>
-            <ion-input required="true" [(ngModel)]="title"></ion-input>
+            <ion-label position="stacked">Vietnamese name of new topic<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="vietnameseName"></ion-input>
         </ion-item>
-        <ion-item>
-            <ion-label position="stacked">Detail message to group '{{topic.englishName}}' <ion-text color="danger">*</ion-text></ion-label>
-            <ion-textarea autoGrow="true" required="true"
-                          rows="10"
-                          [(ngModel)]="body"
-                          placeholder="draft your msg to group here here...  then click Send at bottom"></ion-textarea>
-
-        </ion-item>
-<!--        <ion-card>-->
-<!--            <ion-card-header>-->
-<!--                <ion-card-subtitle>Detail message to group '{{topic.englishName}}'</ion-card-subtitle>-->
-<!--                <ion-card-title>Message detail</ion-card-title>-->
-<!--            </ion-card-header>-->
-
-<!--            <ion-card-content>-->
-<!--                <ion-textarea autoGrow="true"-->
-<!--                              rows="10"-->
-<!--                              [(ngModel)]="body"-->
-<!--                              placeholder="draft your msg to group here here...  then click Send at bottom"></ion-textarea>-->
-<!--            </ion-card-content>-->
-<!--        </ion-card>-->
 
         <ion-toolbar>
             <ion-buttons slot="end">
-                <ion-button (click)="cancel()">Cancel</ion-button>
-            </ion-buttons>
-            <ion-buttons slot="end">
-                <ion-button [disabled]="!hasRequiredData()" (click)="send()">Send</ion-button>
+                <ion-button [disabled]="!hasRequiredData()" (click)="addSubTopic()">
+                    <ion-icon slot="icon-only" name="checkmark-circle-outline"></ion-icon>
+                </ion-button>
             </ion-buttons>
         </ion-toolbar>
     </ion-list>

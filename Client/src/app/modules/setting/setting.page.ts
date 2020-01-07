@@ -2,12 +2,13 @@ import {Component, OnInit} from '@angular/core';
 import {ModalController, NavParams} from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
-import {BackendService} from "../../services/backend.service";
-import {TopicNode} from "../../model/topicnode.model";
-import {TopicGroup} from "../../model/topicgroup.model";
-import {SendNotificationModal} from "./sendNotification.modal";
-import {LoginModal} from "./login.modal";
-import {MyUser} from "../../model/MyUser.model";
+import {BackendService} from '../../services/backend.service';
+import {TopicNode} from '../../model/topicnode.model';
+import {TopicGroup} from '../../model/topicgroup.model';
+import {SendNotificationModal} from './sendNotification.modal';
+import {LoginModal} from './login.modal';
+import {MyUser} from '../../model/MyUser.model';
+import {AddTopicModal} from './addTopic.modal';
 
 @Component({
     selector: 'app-setting',
@@ -20,7 +21,7 @@ import {MyUser} from "../../model/MyUser.model";
 export class SettingPage implements OnInit {
     topicGroups = new Map<string, TopicGroup>();
     firstRefreshTime: number;
-    refreshCount: number = 0;
+    refreshCount = 0;
     backendServerUrls: string[];
     selectedBackEndUrl: string;
 
@@ -36,13 +37,15 @@ export class SettingPage implements OnInit {
         this.firstRefreshTime = Date.now();
         this.refreshCount = 0;
         this.backendService.loadCurrentSubscriptionsFromLocalStorage().subscribe(topicGroups => {
-                if (topicGroups == null)
-                    return;
-                for (let group of <TopicGroup[]>topicGroups) {
-                    this.topicGroups.set(group.id, group);
-                }
-            })
-        if (this.topicGroups.size == 0) {
+            if (topicGroups == null) {
+                return;
+            }
+            for (const group of <TopicGroup[]>topicGroups) {
+                this.topicGroups.set(group.id, group);
+            }
+        });
+
+        if (this.topicGroups.size === 0) {
             this.refreshTopics();
         }
     }
@@ -64,9 +67,14 @@ export class SettingPage implements OnInit {
             }
         });
         modal.onDidDismiss().then((response: any) => {
-            if (response && response['data'] && response['data']['userEmail'] && response['data']['idToken'] && response['data']['accessToken']) {
-                this.logger.debug('The response:', response);
-                this.backendService.setAuthorizedUser(new MyUser(response['data']['userEmail'], response['data']['idToken'], response['data']['accessToken']));
+            if (response && response['data'] &&
+                response['data']['userEmail'] &&
+                response['data']['idToken'] && response['data']['accessToken']) {
+                    this.logger.debug('The response:', response);
+                    this.backendService.setAuthorizedUser(
+                        new MyUser(response['data']['userEmail'],
+                            response['data']['idToken'],
+                            response['data']['accessToken']));
             }
         });
         await modal.present();
@@ -82,7 +90,7 @@ export class SettingPage implements OnInit {
         this.refreshTopics();
         setTimeout(() => {
             event.target.complete();
-            if (this.refreshCount == 0 || (Date.now() - this.firstRefreshTime) > 10000) {
+            if (this.refreshCount === 0 || (Date.now() - this.firstRefreshTime) > 10000) {
                 this.firstRefreshTime = Date.now();
                 this.refreshCount = 0;
             }
@@ -96,12 +104,29 @@ export class SettingPage implements OnInit {
         this.refreshCount = (this.refreshCount + 1) % 4;
     }
 
-    public addTopic(group: TopicGroup) {
+    public async addTopic(group: TopicGroup) {
         this.logger.debug(`Add topic dialog for group ${JSON.stringify(group)}`);
+
+        const modal = await this.modalController.create({
+            component: AddTopicModal,
+            componentProps: {
+                'group': group
+            }
+        });
+        modal.onDidDismiss().then((resp: any) => {
+            if (resp !== null) {
+                this.logger.debug('The response:', resp);
+                if (resp['data'] != null) {
+                    this.logger.debug('New topic created: ', resp['data']);
+                    this.refreshTopics();
+                }
+            }
+        });
+        await modal.present();
     }
 
     public getTopicGroups(): TopicGroup[] {
-        let ret = [];
+        const ret = [];
         this.topicGroups.forEach((group, idKey, m) => {
             ret.push(group);
         });
@@ -126,25 +151,27 @@ export class SettingPage implements OnInit {
 
     public refreshTopics() {
         this.backendService.getAllAvailableTopics().subscribe(topics => {
-            if (!topics || topics.length == 0)
+            if (!topics || topics.length === 0) {
                 return;
-            let _new = this.backendService.buildTopicGroups(topics);
+            }
+            const _new = this.backendService.buildTopicGroups(topics);
             this.backendService.buildSubTopics(_new, topics);
             this.syncCurrentTopicGroups(_new);
-        })
+        });
     }
 
     private syncCurrentTopicGroups(newItems: Map<string, TopicGroup>) {
-        let toBeUnsubscribed: TopicNode[] = []
+        const toBeUnsubscribed: TopicNode[] = []
         this.topicGroups.forEach((group, idKey, m) => {
-            for (let topic of group.subtopics) {
+            for (const topic of group.subtopics) {
                 let foundNewTopic = false;
                 newItems.forEach((_group, _idKey, _m) => {
-                    if (group.id == _group.id)
+                    if (group.id === _group.id) {
                         _group.expanded = group.expanded;
+                    }
 
-                    for (let _topic of _group.subtopics) {
-                        if (topic.id == _topic.id) {
+                    for (const _topic of _group.subtopics) {
+                        if (topic.id === _topic.id) {
                             foundNewTopic = true;
                             _topic.subscribed = topic.subscribed;
                         }
@@ -159,20 +186,28 @@ export class SettingPage implements OnInit {
         this.topicGroups = newItems;
         this.backendService.saveCurrentSubscriptions(this.topicGroups);
 
-        for (let item of toBeUnsubscribed) {
+        for (const item of toBeUnsubscribed) {
             this.checkboxItemClicked(item);
         }
     }
 
-    public authorizedToSendNotification() {
-        return this.backendService.getAuthorizedUser() != null && this.backendService.getAuthorizedUser().authorizedToSendNotification();
+    public authorizedToWorkWithNotification() {
+        return this.backendService.getAuthorizedUser() != null &&
+            this.backendService.getAuthorizedUser().authorizedToWorkWithNotification();
     }
 
     public canSendNotification(topic: TopicNode): boolean {
-        if (topic == null || !this.authorizedToSendNotification())
+        if (topic == null || !this.authorizedToWorkWithNotification()) {
             return false;
+        }
+        return this.backendService.getAuthorizedUser().canSendNotificationToTopic(topic.parentId, topic.id);
+    }
 
-        return this.backendService.getAuthorizedUser().canSendNotificationToTopic(topic.parentId, topic.id)
+    public canAddTopic(group: TopicGroup): boolean {
+        if (group == null || !this.authorizedToWorkWithNotification()) {
+            return false;
+        }
+        return this.backendService.getAuthorizedUser().canAddTopic(group.id);
     }
 
     public async sendMessageToTopic(topic: TopicNode) {
@@ -187,9 +222,9 @@ export class SettingPage implements OnInit {
                 this.logger.debug('The response:', resp);
                 if (resp['data'] != null) {
                     this.logger.debug('Msg to send:', resp['data']);
-                    this.backendService.sendNotification(topic, resp.data.title, resp.data.body).subscribe(resp => {
-                        this.logger.debug('Msg sent status:', resp);
-                    })
+                    this.backendService.sendNotification(topic, resp.data.title, resp.data.body).subscribe((msgStatus) => {
+                        this.logger.debug('Msg sent status:', msgStatus);
+                    });
                 }
             }
         });

@@ -4,6 +4,7 @@
 *-firebase-adminsdk-*.json
 google-services.json
 
+
 ### STS ###
 .apt_generated
 .classpath

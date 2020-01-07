@@ -1,12 +1,16 @@
 <ion-header translucent>
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
         <ion-title>Login</ion-title>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
     <ion-list>
         <ion-item>
-<!--            <ion-label *ngIf="failedReason != null" color="danger">{{failedReason}}</ion-label>-->
             <ion-textarea *ngIf="failedReason != null" color="danger"
                           autoGrow="true"
                           rows="3"
@@ -25,10 +29,9 @@
 
         <ion-toolbar>
             <ion-buttons slot="end">
-                <ion-button (click)="cancel()">Cancel</ion-button>
-            </ion-buttons>
-            <ion-buttons slot="end">
-                <ion-button [disabled]="!hasRequiredData()" (click)="login()">Login</ion-button>
+                <ion-button [disabled]="!hasRequiredData()" (click)="login()">
+                    <ion-icon slot="icon-only" name="checkmark-circle-outline"></ion-icon>
+                </ion-button>
             </ion-buttons>
         </ion-toolbar>
     </ion-list>
