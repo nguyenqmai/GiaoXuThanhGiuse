@@ -18,11 +18,11 @@ export class TabsPage implements OnInit {
     }
 
     ngOnInit() {
-        this.fcm.onNotificationOpen().subscribe(data => {
-            this.logger.info(`got msg inside TabsPage ${JSON.stringify(data)}`);
+        this.fcm.onNotificationOpen().subscribe(msgs => {
+            this.logger.info(`got msg inside TabsPage ${JSON.stringify(msgs)}`);
             if (this.currentTab !== 'notifications') {
                 this.ngZone.run(() => {
-                    this.newNotificationCount += 1;
+                    this.newNotificationCount += msgs.length;
                 });
             }
         });

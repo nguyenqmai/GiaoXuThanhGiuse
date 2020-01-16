@@ -36,14 +36,13 @@ export class SettingPage implements OnInit {
         this.selectedBackEndUrl = this.backendService.getCurrentUrlPrefix();
         this.firstRefreshTime = Date.now();
         this.refreshCount = 0;
-        this.backendService.loadCurrentSubscriptionsFromLocalStorage().subscribe(topicGroups => {
-            if (topicGroups == null) {
-                return;
-            }
-            for (const group of <TopicGroup[]>topicGroups) {
-                this.topicGroups.set(group.id, group);
-            }
-        });
+        const topicGroups = await this.backendService.loadCurrentSubscriptionsFromLocalStorage();
+        if (topicGroups == null) {
+            return;
+        }
+        for (const group of <TopicGroup[]>topicGroups) {
+            this.topicGroups.set(group.id, group);
+        }
 
         if (this.topicGroups.size === 0) {
             this.refreshTopics();
@@ -161,7 +160,7 @@ export class SettingPage implements OnInit {
     }
 
     private syncCurrentTopicGroups(newItems: Map<string, TopicGroup>) {
-        const toBeUnsubscribed: TopicNode[] = []
+        const toBeUnsubscribed: TopicNode[] = [];
         this.topicGroups.forEach((group, idKey, m) => {
             for (const topic of group.subtopics) {
                 let foundNewTopic = false;

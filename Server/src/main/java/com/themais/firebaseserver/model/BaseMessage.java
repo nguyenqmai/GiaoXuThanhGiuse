@@ -12,6 +12,7 @@ import java.util.Map;
 @Data
 public class BaseMessage {
     private String id;
+    private Long sentTime;
     private Long creationTime;
     private Status status;
     private String topic;

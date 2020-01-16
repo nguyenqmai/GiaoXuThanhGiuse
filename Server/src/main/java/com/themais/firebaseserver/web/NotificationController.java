@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,9 +44,9 @@ public class NotificationController {
 
 
     @GetMapping("/topics/{topic}/messages")
-    List<BaseMessage> getAllBaseMessages(@PathVariable(name = "topic") String topic,
+    List<BaseMessage> getBaseMessagesOfTopic(@PathVariable(name = "topic") String topic,
                                          @RequestParam(name = "status", required = false) BaseMessage.Status status) {
-        return fireStorageService.getBaseMessages(topic, status);
+        return fireStorageService.getBaseMessages(Arrays.asList(topic), status);
     }
 
     @PutMapping("/topics/{topic}/messages")
@@ -59,4 +60,12 @@ public class NotificationController {
             throw e;
         }
     }
+
+    @GetMapping("/messages")
+    List<BaseMessage> getBaseMessages(@RequestParam(name = "sentTime") long sentTime,
+                                      @RequestParam(name = "topics") List<String> topics,
+                                      @RequestParam(name = "status") BaseMessage.Status status) {
+        return fireStorageService.getBaseMessages(topics, status, sentTime);
+    }
+
 }

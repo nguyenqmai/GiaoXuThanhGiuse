@@ -8,7 +8,9 @@ import {Storage} from '@ionic/storage';
 import {TopicGroup} from '../model/topicgroup.model';
 import {NGXLogger} from 'ngx-logger';
 import {MyUser} from '../model/MyUser.model';
+import {MyNotification} from '../model/fcmnotification.model';
 
+const LAST_SYNC_TIME_KEY = 'LAST_SYNC_TIME';
 const SUBSCRIPTIONS_KEY = 'MY_SUBSCRIPTIONS';
 const URL_PREFIX_KEY = 'URL_PREFIX';
 const AVAILABLE_URL_PREFIXS: string[]  = ['http://localhost:4200', 'http://192.168.10.11:8080', 'http://69.221.129.172:8080'];
@@ -145,16 +147,49 @@ export class BackendService {
         return this.http.put<string>(`${this.URL_PREFIX}/rest/notifications/topics/${topic.id}/messages`, msg);
     }
 
-    public loadCurrentSubscriptionsFromLocalStorage(): Observable<TopicGroup[]> {
-        return from(Promise.resolve(this.storage.get(SUBSCRIPTIONS_KEY)));
+    public retrieveNotificationsSinceLastSync(topics: string, status: string, lastSyncTime: number): Observable<MyNotification[]> {
+        // topics: comma separated topicIds
+        return this.http.get<MyNotification[]>(
+            `${this.URL_PREFIX}/rest/notifications/messages?sentTime=${lastSyncTime}&status=${status}&topics=${topics}`);
     }
 
-    public saveCurrentSubscriptions(topicGroups: Map<String, TopicGroup>) {
+
+    public async getSubscribedToTopics(): Promise<TopicNode[]> {
+        const ret: TopicNode[] = [];
+        (await this.loadCurrentSubscriptionsFromLocalStorage()).forEach(group => {
+            if (group.subtopics == null) {
+                return;
+            }
+            group.subtopics.forEach(topic => {
+                if (topic.subscribed) {
+                    ret.push(topic);
+                }
+            });
+        });
+        return ret;
+    }
+
+    public loadCurrentSubscriptionsFromLocalStorage(): Promise<TopicGroup[]> {
+        return this.storage.get(SUBSCRIPTIONS_KEY);
+    }
+
+    public async saveCurrentSubscriptions(topicGroups: Map<String, TopicGroup>) {
         const data: TopicGroup[] = [];
         topicGroups.forEach((group, idKey, m) => {
             data.push(group);
         });
-        this.storage.set(SUBSCRIPTIONS_KEY, data);
+        await this.storage.set(SUBSCRIPTIONS_KEY, data);
+    }
+
+    public async saveSyncTime(syncTime: number) {
+        syncTime = syncTime == null ? Date.now() : syncTime;
+        await this.storage.set(LAST_SYNC_TIME_KEY, syncTime);
+        return syncTime;
+    }
+
+    public async getLastSyncTime(): Promise<number> {
+        const lastSyncTime = await this.storage.get(LAST_SYNC_TIME_KEY);
+        return lastSyncTime ? lastSyncTime : 0;
     }
 
     public clearStorage() {

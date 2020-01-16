@@ -1,7 +1,6 @@
 package com.themais.firebaseserver.service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.themais.firebaseserver.model.BaseMessage;
 import com.themais.firebaseserver.model.ContactInfo;
@@ -54,23 +53,32 @@ public class FireStorageService {
 
     public boolean upsertTopic(TopicNode newTopic) {
         try {
-            firestore.collection(MyCollections.topics.name()).document().set(newTopic).get();
+            firestore.collection(MyCollections.topics.name()).document(newTopic.getId()).set(newTopic).get();
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public List<BaseMessage> getBaseMessages(String topic, BaseMessage.Status status) {
+    public List<BaseMessage> getBaseMessages(List<String> topics, BaseMessage.Status status) {
+        return getBaseMessages(topics, status, null);
+    }
+
+    public List<BaseMessage> getBaseMessages(List<String> topics, BaseMessage.Status status, Long sentTime) {
         try { // query.get() blocks on response
             Query query = firestore.collection(MyCollections.baseMessages.name());
-            if (topic != null) {
-                query = query.whereEqualTo("topic", topic);
+            if (sentTime != null && sentTime > 0) {
+                query = query.whereGreaterThanOrEqualTo("sentTime", sentTime);
+            }
+
+            if (topics != null && topics.size() > 0) {
+                query = query.whereIn("topic", topics);
             }
 
             if (status != null) {
                 query = query.whereEqualTo("status", status);
             }
+
             return query.get().
                     get().
                     getDocuments().
@@ -106,8 +114,8 @@ public class FireStorageService {
         try {
             DocumentReference docRef = firestore.collection(MyCollections.baseMessages.name()).document(messageId);
             ApiFuture<WriteResult> future = (exceptionDetail == null) ?
-                    docRef.update("status", status.name()) :
-                    docRef.update("status", status.name(), "exceptionDetail", exceptionDetail);
+                    docRef.update("status", status.name(), "sentTime", System.currentTimeMillis()) :
+                    docRef.update("status", status.name(), "sentTime", System.currentTimeMillis(), "exceptionDetail", exceptionDetail);
             WriteResult result = future.get();
             System.out.println("Write result: " + result);
             return true;

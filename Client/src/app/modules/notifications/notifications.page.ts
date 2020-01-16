@@ -24,8 +24,8 @@ export class NotificationsPage implements OnInit {
 
     ngOnInit() {
         this.refreshAllNotifications();
-        this.fcm.onNotificationOpen().subscribe(data => {
-            this.logger.info(`got msg inside NotificationsPage ${JSON.stringify(data)}`);
+        this.fcm.onNotificationOpen().subscribe(msgs => {
+            this.logger.info(`got msg inside NotificationsPage ${JSON.stringify(msgs)}`);
             this.ngZone.run(() => { this.refreshAllNotifications(); });
         });
     }
@@ -78,7 +78,7 @@ export class NotificationsPage implements OnInit {
             body: 'body-' + millis,
 
         };
-        this.fcm.saveNotification(notification).then(() => {
+        this.fcm.saveNotification([notification]).then(() => {
             this.refreshAllNotifications();
         });
     }
@@ -99,26 +99,31 @@ export class NotificationsPage implements OnInit {
 
     public refreshAllNotifications() {
         this.waiting = true;
-        this.fcmNotifications.clear();
-        this.fcm.getSavedNotifications().subscribe(
-    values => {
-            this.logger.info('Notification.refreshAllNotifications(): next value');
-            values.forEach((value: MyNotification[], key: number, map: Map<number, MyNotification[]>) => {
-                this.fcmNotifications.set(key, value);
-                if (!this.groupExpansionControl.has(key)) {
-                    this.groupExpansionControl.set(key, false);
-                }
-            });
+        try {
+            this.fcmNotifications.clear();
+            this.fcm.getSavedNotifications().subscribe(
+                values => {
+                    this.logger.info('Notification.refreshAllNotifications(): next value');
+                    values.forEach((value: MyNotification[], key: number, map: Map<number, MyNotification[]>) => {
+                        this.fcmNotifications.set(key, value);
+                        if (!this.groupExpansionControl.has(key)) {
+                            this.groupExpansionControl.set(key, false);
+                        }
+                    });
+                    this.waiting = false;
+                    this.notificationKeys = Array.from(this.fcmNotifications.keys()).sort().reverse();
+                },
+                error => {
+                    this.logger.info('Notification.refreshAllNotifications(): error');
+                    this.waiting = false;
+                },
+                () => {
+                    this.logger.info('Notification.refreshAllNotifications(): complete');
+                    this.waiting = false;
+                });
+        } catch (error) {
             this.waiting = false;
-            this.notificationKeys = Array.from(this.fcmNotifications.keys()).sort().reverse();
-        },
-    error => {
-            this.logger.info('Notification.refreshAllNotifications(): error');
-            this.waiting = false;
-        },
-        () => {
-            this.logger.info('Notification.refreshAllNotifications(): complete');
-            this.waiting = false;
-        });
+            this.logger.warn('Notification.refreshAllNotifications(): catch error: ', error);
+        }
     }
 }

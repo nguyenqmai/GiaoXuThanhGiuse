@@ -1,4 +1,4 @@
-import {TopicNode} from "./topicnode.model";
+import {TopicNode} from './topicnode.model';
 
 export interface TopicGroup {
     id: string;

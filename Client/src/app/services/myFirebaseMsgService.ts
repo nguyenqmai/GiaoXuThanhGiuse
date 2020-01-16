@@ -5,6 +5,7 @@ import {Observable, Subject} from 'rxjs';
 import {NGXLogger} from 'ngx-logger';
 
 import {MyNotification} from '../model/fcmnotification.model';
+import {BackendService} from './backend.service';
 
 
 @Injectable({
@@ -19,7 +20,7 @@ export class MyFirebaseMsgService {
     public static NOTIFICATION_PREFIX = 'notifications-';
     public static MILLIS_PER_DAY: number = 1000 * 60 * 60 * 24;
     private currentToken: string = null;
-    private newNotificationSubject: Subject<MyNotification> = new Subject<MyNotification>();
+    private newNotificationSubject: Subject<MyNotification[]> = new Subject<MyNotification[]>();
 
     private static isNotificationKey(key: string): boolean {
         return key == null ? false : key.startsWith(MyFirebaseMsgService.NOTIFICATION_PREFIX);
@@ -38,7 +39,8 @@ export class MyFirebaseMsgService {
 
     constructor(private logger: NGXLogger,
                 private firebase: Firebase,
-                private storage: Storage) {
+                private storage: Storage,
+                private backendService: BackendService) {
         this.setup();
     }
 
@@ -48,16 +50,35 @@ export class MyFirebaseMsgService {
             this.logger.debug('got token ' + newToken);
         });
 
-        this.firebase.onNotificationOpen().subscribe((msg: MyNotification) => {
+        this.firebase.onNotificationOpen().subscribe(async (msg: MyNotification) => {
             this.logger.info(`got msg inside MyFirebaseMsgService ${JSON.stringify(msg)}`);
-            this.saveNotification(msg).then((savedMsg) => {
-                this.newNotificationSubject.next(savedMsg);
-            });
-            // this.firebase.clearAllNotifications();
+            if (msg.tap) {
+                const clearResult = await this.firebase.clearAllNotifications();
+                this.logger.info(`got clearAllNotifications result MyFirebaseMsgService ${JSON.stringify(clearResult)}`);
+                const topicIds =
+                    (await this.backendService.getSubscribedToTopics()).
+                    map((value, index, array) => value.id).join(',');
+                this.logger.info(`got topicIds ${topicIds}`);
+                const lastSyncTime = await this.backendService.getLastSyncTime();
+                this.logger.info(`last sync time ${lastSyncTime}`);
+                this.backendService.retrieveNotificationsSinceLastSync(topicIds, 'PROCESSED_SUCCESSFULLY', lastSyncTime).
+                    subscribe(async otherNotifications => {
+                        await this.saveNotification(otherNotifications);
+                        await this.backendService.saveSyncTime(null);
+                        this.newNotificationSubject.next(otherNotifications);
+                    },
+                    (error) => {
+                        this.logger.info(`error when retrieveNotificationsSinceLastSync  ${JSON.stringify(error)}`);
+                    });
+            } else {
+                const otherNotifications: MyNotification[] = [msg];
+                await this.saveNotification(otherNotifications);
+                this.newNotificationSubject.next(otherNotifications);
+            }
         });
     }
 
-    public onNotificationOpen(): Subject<MyNotification> {
+    public onNotificationOpen(): Subject<MyNotification[]> {
         return this.newNotificationSubject;
     }
 
@@ -97,16 +118,25 @@ export class MyFirebaseMsgService {
                     for (const keyForDate of keys) {
                         this.logger.debug(`getSavedNotifications working on key ${keyForDate}`);
                         this.storage.get(keyForDate).then((prevNotifications: MyNotification[]) => {
-                            if (prevNotifications == null || prevNotifications.length === 0) {
-                                return;
-                            }
                             const ret: Map<number, MyNotification[]> = new Map<number, MyNotification[]>();
-                            ret.set(MyFirebaseMsgService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
+                            if (prevNotifications  && prevNotifications.length > 0) {
+                                ret.set(MyFirebaseMsgService.extractTimeFromNotificationKey(keyForDate), prevNotifications);
+                            }
                             subscriber.next(ret);
+                        },
+                        (rejectedReason) => {
+                            this.logger.warn(`getSavedNotifications get values for key ${keyForDate} was rejected.`,
+                                JSON.stringify(rejectedReason));
+                            subscriber.complete();
                         });
                     }
                 }
                 return;
+            },
+            (rejectedReason) => {
+                this.logger.warn(`getSavedNotifications getNotificationKeys from ${from} to ${to} was rejected.`,
+                    JSON.stringify(rejectedReason));
+                subscriber.complete();
             });
         });
     }
@@ -128,29 +158,63 @@ export class MyFirebaseMsgService {
         return ret;
     }
 
-    public async saveNotification(msg: MyNotification): Promise<MyNotification> {
-        if (msg.creationTime == null) {
-            msg.creationTime = Date.now();
+    public async saveNotification(messages: MyNotification[]): Promise<MyNotification[]> {
+        const msgGroups = new Map<string, MyNotification[]>();
+        for (const msg of messages) {
+            if (msg.creationTime == null) {
+                msg.creationTime = Date.now();
+            }
+
+            // var creationDate = new Date(Number(msg.creationTime));
+            const keyForDate = MyFirebaseMsgService.buildNotificationKey(msg.creationTime);
+            this.logger.debug(`saveNotification` +
+                ` title [${msg.title}]` +
+                ` creationTime [${msg.creationTime}]` +
+                ` creationTimeType [${typeof msg.creationTime}]` +
+                ` keyForDate [${keyForDate}]`);
+
+            let msgs: MyNotification[] = msgGroups.get(keyForDate);
+            if (msgs == null) {
+                msgs = [];
+            }
+            msgs.push(msg);
+            msgGroups.set(keyForDate, msgs);
         }
 
-        // var creationDate = new Date(Number(msg.creationTime));
-        const keyForDate = MyFirebaseMsgService.buildNotificationKey(msg.creationTime);
-        this.logger.debug(`saveNotification` +
-            ` title [${msg.title}]` +
-            ` creationTime [${msg.creationTime}]` +
-            ` creationTimeType [${typeof msg.creationTime}]` +
-            ` keyForDate [${keyForDate}]`);
-        let prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
+        msgGroups.forEach(async (msgs, keyForDate, map) => {
+            this.logger.debug(`working on key ${keyForDate} new msg count ${msgs.length}`);
+            let prevNotifications: MyNotification[] = await this.storage.get(keyForDate);
+            if (prevNotifications == null) {
+                prevNotifications = [];
+            }
+            this.logger.debug(`prevNotifications count before concat ${prevNotifications.length}`);
+            prevNotifications = prevNotifications.concat(msgs);
+            prevNotifications.sort((a, b) => b.creationTime - a.creationTime);
+            this.logger.debug(`prevNotifications count after concat and sort ${prevNotifications.length}`);
+            await this.storage.set(keyForDate, this.cleanupSortedDuplicatedNotifications(prevNotifications));
+        });
 
-        if (prevNotifications == null) {
-            prevNotifications = [];
+        return messages;
+    }
+
+    private cleanupSortedDuplicatedNotifications(prevNotifications: MyNotification[]): MyNotification[] {
+        this.logger.debug(`prevNotifications before cleaning up count ${prevNotifications.length}`);
+        let msg: MyNotification = null;
+        for (let index = prevNotifications.length - 1; 0 <= index; index--) {
+            this.logger.debug(`Checking on item ${JSON.stringify(prevNotifications[index])}`);
+            if (msg == null ||
+                    msg.topic !== prevNotifications[index].topic ||
+                    msg.creationTime !== prevNotifications[index].creationTime ||
+                    msg.title !== prevNotifications[index].title) {
+                msg = prevNotifications[index];
+                continue;
+            }
+
+            this.logger.debug(`Item ${JSON.stringify(prevNotifications[index])} is a match and will be deleted`);
+            prevNotifications.splice(index, 1);
         }
-        this.removeDuplicatedNotification(prevNotifications, msg);
-        prevNotifications.unshift(msg);
-        prevNotifications.sort((a, b) => b.creationTime - a.creationTime);
-
-        const ret = await this.storage.set(keyForDate, prevNotifications);
-        return msg;
+        this.logger.debug(`prevNotifications after cleaning up count ${prevNotifications.length}`);
+        return prevNotifications;
     }
 
     private removeDuplicatedNotification(prevNotifications: MyNotification[], msg: MyNotification): boolean {
@@ -190,7 +254,7 @@ export class MyFirebaseMsgService {
             return true;
         }
         this.logger.debug(`Store the prevNotifications back in storage`);
-        return this.storage.set(keyForDate, prevNotifications);
+        return await this.storage.set(keyForDate, prevNotifications);
     }
 
 }

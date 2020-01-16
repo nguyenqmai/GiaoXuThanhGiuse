@@ -9,13 +9,20 @@
 <ion-content>
     <ion-list lines="none">
         <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+<!--        <ion-item-group *ngFor="let contact of contacts">-->
+<!--            <ion-item>-->
+<!--                <ion-icon slot="start" [name]="contact.expanded ? 'arrow-dropdown' : 'arrow-dropright'" (click)="tongleContactExpansion(contact)"></ion-icon>-->
+<!--                <ion-label position="stacked" *ngIf="contact.title">{{contact.title}}</ion-label>-->
+<!--                <ion-label class="ion-text-wrap">{{contact.name}}</ion-label>-->
+<!--            </ion-item>-->
 
-        <ion-card *ngFor="let contact of contacts">
+        <ion-card *ngFor="let contact of contacts"
+                  button="true" (click)="tongleContactExpansion(contact)">
             <ion-card-header>
                 <ion-card-subtitle *ngIf="contact.title">{{contact.title}}</ion-card-subtitle>
                 <ion-card-title>{{contact.name}}</ion-card-title>
             </ion-card-header>
-            <ion-card-content *ngIf="contact.email || contact.phone">
+            <ion-card-content *ngIf="contact.expanded && (contact.email || contact.phone)">
                 <ion-list lines="none">
                     <ion-item *ngIf="contact.email">
                         <ion-label position="end">{{contact.email}}</ion-label>
@@ -28,14 +35,7 @@
                 </ion-list>
             </ion-card-content>
         </ion-card>
-
-<!--        <ion-item *ngFor="let item of group.subItems">-->
-<!--            <ion-label class="ion-margin-start ion-padding-start">{{item.name}}</ion-label>-->
-<!--            <ion-button color="light">View notifications</ion-button>-->
-<!--            &lt;!&ndash; <ion-badge margin-end slot="end" color="secondary">{{item.name.length}}</ion-badge> &ndash;&gt;-->
-<!--        </ion-item>-->
-
+<!--        </ion-item-group>-->
     </ion-list>
-
 
 </ion-content>
