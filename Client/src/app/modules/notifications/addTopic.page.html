@@ -1,12 +1,11 @@
 <ion-header translucent>
     <ion-toolbar>
         <ion-buttons slot="start">
-            <ion-back-button></ion-back-button>
             <ion-button (click)="cancel()">
                 <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title>Login</ion-title>
+        <ion-title>{{group.englishName}}</ion-title>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
@@ -21,16 +20,18 @@
 
         <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
         <ion-item>
-            <ion-input type="text" placeholder="User id/email" clearOnEdit="false" required="true" [(ngModel)]="userEmail"></ion-input>
+            <ion-label position="stacked">English name of new topic<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="englishName"></ion-input>
         </ion-item>
+
         <ion-item>
-            <ion-input placeholder="Password" [type]="showPassword ? 'text' : 'password'" clearOnEdit="false" required="true" [(ngModel)]="password"></ion-input>
-            <button (click)="onPasswordToggle()" ion-button clear small item-end icon-only><ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon></button>
+            <ion-label position="stacked">Vietnamese name of new topic<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="vietnameseName"></ion-input>
         </ion-item>
 
         <ion-toolbar>
             <ion-buttons slot="end">
-                <ion-button [disabled]="!hasRequiredData()" (click)="login()">
+                <ion-button [disabled]="!hasRequiredData()" (click)="addSubTopic()">
                     <ion-icon slot="icon-only" name="checkmark-circle-outline"></ion-icon>
                 </ion-button>
             </ion-buttons>

@@ -1,7 +1,9 @@
 import {Component, NgZone, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import {NGXLogger} from 'ngx-logger';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
+
 
 
 @Component({
@@ -19,7 +21,8 @@ export class NotificationsPage implements OnInit {
     refreshCount = 0;
     waiting = false;
 
-    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService, private ngZone: NgZone) {
+    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService, private ngZone: NgZone,
+                private router: Router, private route: ActivatedRoute) {
     }
 
     ngOnInit() {
@@ -38,6 +41,10 @@ export class NotificationsPage implements OnInit {
             this.refreshCount += 1;
             event.target.complete();
         }, 1000);
+    }
+
+    options() {
+        this.router.navigate(['subscribesetting'], { relativeTo: this.route });
     }
 
     onSearchInput(event) {

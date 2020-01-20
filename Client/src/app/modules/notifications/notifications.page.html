@@ -1,9 +1,16 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title>
-            Received Notifications
-<!--            <ion-icon color="medium" name="add" (click)="insertRandomNotification()"></ion-icon>-->
-        </ion-title>
+        <ion-buttons slot="start">
+            <ion-title style="margin: auto;flex-basis: 50px;">
+                Notifications
+            </ion-title>
+        </ion-buttons>
+        <ion-searchbar animated="true" [(ngModel)]="searchText" (ionInput)="onSearchInput($event)"></ion-searchbar>
+        <ion-buttons slot="end">
+            <ion-button (click)="options()">
+                <ion-icon name="options" slot="icon-only"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -20,7 +27,6 @@
     <ion-list lines="full" >
         <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
 
-        <ion-searchbar animated="true" [(ngModel)]="searchText" (ionInput)="onSearchInput($event)"></ion-searchbar>
         <ion-item-group *ngFor="let key of notificationKeys">
             <ion-item color="light">
                 <ion-icon slot="start" [name]="getGroupExpansionFlag(key) ? 'arrow-dropdown' : 'arrow-dropright'"
@@ -28,7 +34,6 @@
 
                 <ion-label slot="start" color="dark" class="ion-text-wrap">{{ key | date:'longDate' }}</ion-label>
                 <ion-badge color="medium" slot="end">{{getNotificationsOfKey(key).length}}</ion-badge>
-                <!--            <ion-icon slot="end" color="medium" name="sync" (click)="refreshAllNotifications()"></ion-icon>-->
             </ion-item>
 
             <div *ngIf="getGroupExpansionFlag(key)">
