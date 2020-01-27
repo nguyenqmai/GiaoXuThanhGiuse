@@ -1,7 +1,9 @@
 import {Component, NgZone, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
 import {NGXLogger} from 'ngx-logger';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
+import {SubscribeSettingModal} from './subscribeSetting.modal';
 
 
 @Component({
@@ -19,12 +21,14 @@ export class NotificationsPage implements OnInit {
     refreshCount = 0;
     waiting = false;
 
-    constructor(private logger: NGXLogger, private fcm: MyFirebaseMsgService, private ngZone: NgZone) {
+    constructor(private logger: NGXLogger,
+                private modalController: ModalController,
+                private fcm: MyFirebaseMsgService, private ngZone: NgZone) {
     }
 
     ngOnInit() {
         this.refreshAllNotifications();
-        this.fcm.onNotificationOpen().subscribe(msgs => {
+        this.fcm.onMessageReceived().subscribe(msgs => {
             this.logger.info(`got msg inside NotificationsPage ${JSON.stringify(msgs)}`);
             this.ngZone.run(() => { this.refreshAllNotifications(); });
         });
@@ -38,6 +42,25 @@ export class NotificationsPage implements OnInit {
             this.refreshCount += 1;
             event.target.complete();
         }, 1000);
+    }
+
+    public async options() {
+        this.logger.debug(`Add topic dialog for group `);
+
+        const modal = await this.modalController.create({
+            component: SubscribeSettingModal,
+            componentProps: {
+            }
+        });
+        modal.onDidDismiss().then((resp: any) => {
+            if (resp !== null) {
+                this.logger.debug('The response:', resp);
+                if (resp['data'] != null) {
+                    this.logger.debug('New topic created: ', resp['data']);
+                }
+            }
+        });
+        await modal.present();
     }
 
     onSearchInput(event) {

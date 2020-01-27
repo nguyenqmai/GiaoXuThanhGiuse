@@ -4,12 +4,12 @@
             Settings
         </ion-title>
         <ion-buttons  slot="end">
-            <ion-button *ngIf="!authorizedToWorkWithNotification()" (click)="showLoginModal()">
+            <ion-button *ngIf="!hasValidAuthorizedUser()" (click)="showLoginModal()">
                 <ion-icon slot="icon-only"  name="log-in" ></ion-icon>
             </ion-button>
         </ion-buttons>
         <ion-buttons  slot="end">
-            <ion-button *ngIf="authorizedToWorkWithNotification()" (click)="logout()">
+            <ion-button *ngIf="hasValidAuthorizedUser()" (click)="logout()">
                 <ion-icon slot="icon-only" name="log-out"></ion-icon>
             </ion-button>
         </ion-buttons>
@@ -28,34 +28,6 @@
     </ion-refresher>
 
     <ion-list lines="full">
-        <ion-item color="light">
-            <ion-label slot="start" color="dark" class="ion-text-wrap">Notifications</ion-label>
-        </ion-item>
-
-        <ion-item-group *ngFor="let group of getTopicGroups()">
-            <ion-item>
-                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
-                          (click)="tongleGroupExpansion(group)"></ion-icon>
-                <ion-label class="ion-text-wrap">{{group.englishName}}</ion-label>
-                <ion-icon *ngIf="group.expanded && canAddTopic(group)"
-                          slot="end" name="add" (click)="addTopic(group)"></ion-icon>
-            </ion-item>
-
-            <div *ngIf="group.expanded">
-                <ion-item *ngFor="let item of group.subtopics">
-                    <ion-label class="ion-margin-start ion-padding-start ion-text-wrap">{{item.englishName}}</ion-label>
-                    <ion-toggle *ngIf="!authorizedToWorkWithNotification() && !canSendNotification(item)"
-                                class="ion-margin-end" slot="end" [color]="item.subscribed ? 'medium' : 'light'"
-                                [(ngModel)]="item.subscribed"
-                                (ngModelChange)="checkboxItemClicked(item)"></ion-toggle>
-                    <ion-icon *ngIf="canSendNotification(item)"
-                              class="ion-margin-end" slot="end"
-                              name="chatbubbles" (click)="sendMessageToTopic(item)"></ion-icon>
-
-                </ion-item>
-            </div>
-        </ion-item-group>
-
         <div *ngIf="refreshCount > 2">
             <ion-item>
                 <ion-label slot="stacked" color="dark" class="ion-text-wrap">Backend Server</ion-label>

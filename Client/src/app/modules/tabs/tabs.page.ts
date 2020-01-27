@@ -18,7 +18,7 @@ export class TabsPage implements OnInit {
     }
 
     ngOnInit() {
-        this.fcm.onNotificationOpen().subscribe(msgs => {
+        this.fcm.onMessageReceived().subscribe(msgs => {
             this.logger.info(`got msg inside TabsPage ${JSON.stringify(msgs)}`);
             if (this.currentTab !== 'notifications') {
                 this.ngZone.run(() => {

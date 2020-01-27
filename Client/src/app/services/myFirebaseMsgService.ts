@@ -78,7 +78,7 @@ export class MyFirebaseMsgService {
         });
     }
 
-    public onNotificationOpen(): Subject<MyNotification[]> {
+    public onMessageReceived(): Subject<MyNotification[]> {
         return this.newNotificationSubject;
     }
 

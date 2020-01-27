@@ -13,7 +13,6 @@ export class MyUser {
 
     public authorizedToWorkWithNotification(): boolean {
         return this.accessToken['claims']['notifications'];
-            // && this.accessToken['claims']['notifications'].length > 0;
     }
 
     public canSendNotificationToTopic(parentGroupId: string, topicId: string): boolean {
