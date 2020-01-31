@@ -12,8 +12,6 @@ import { NGXLogger } from 'ngx-logger';
     templateUrl: 'app.component.html'
 })
 export class AppComponent implements OnInit {
-    private currentFCMToken: string;
-
     constructor(
         private logger: NGXLogger,
         private platform: Platform,
@@ -68,10 +66,9 @@ export class AppComponent implements OnInit {
             if (detail.data) {
                 navigator['app'].exitApp();
             }
-        })
+        });
 
         await alert.present();
-
     }
 
     private androidSetup() {

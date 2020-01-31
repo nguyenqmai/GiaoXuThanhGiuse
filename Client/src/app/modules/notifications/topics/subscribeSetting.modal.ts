@@ -1,12 +1,16 @@
 import {Component, OnInit} from '@angular/core';
-import {ModalController, NavParams} from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
+import {OverlayEventDetail} from '@ionic/core';
+
 import { NGXLogger } from 'ngx-logger';
-import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
-import {BackendService} from '../../services/backend.service';
-import {TopicNode} from '../../model/topicnode.model';
-import {TopicGroup} from '../../model/topicgroup.model';
+
+import {MyFirebaseMsgService} from '../../../services/myFirebaseMsgService';
+import {BackendService} from '../../../services/backend.service';
+import {TopicNode} from '../../../model/topicnode.model';
+import {TopicGroup} from '../../../model/topicgroup.model';
 import {SendNotificationModal} from './sendNotification.modal';
 import {AddTopicModal} from './addTopic.modal';
+
 
 @Component({
     selector: 'subscribesetting',
@@ -20,6 +24,7 @@ export class SubscribeSettingModal implements OnInit {
 
     constructor(private logger: NGXLogger,
                 private modalController: ModalController,
+                private alertController: AlertController,
                 private fcm: MyFirebaseMsgService, private backendService: BackendService) {
     }
 
@@ -78,11 +83,11 @@ export class SubscribeSettingModal implements OnInit {
         return ret;
     }
 
-    public tongleGroupExpansion(parentGroup: any) {
+    public toggleGroupExpansion(parentGroup: any) {
         parentGroup.expanded = !parentGroup.expanded;
     }
 
-    public checkboxItemClicked(item: TopicNode) {
+    public toggleClicked(item: TopicNode) {
         this.logger.debug(`topic name ${item.englishName}`);
         this.backendService.saveCurrentSubscriptions(this.topicGroups);
         if (item.subscribed) {
@@ -132,7 +137,7 @@ export class SubscribeSettingModal implements OnInit {
         this.backendService.saveCurrentSubscriptions(this.topicGroups);
 
         for (const item of toBeUnsubscribed) {
-            this.checkboxItemClicked(item);
+            this.toggleClicked(item);
         }
     }
 
@@ -175,4 +180,42 @@ export class SubscribeSettingModal implements OnInit {
         });
         await modal.present();
     }
+
+    hasValidAuthorizedUser(): boolean {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens();
+    }
+
+    canManageTopicsAndNotifications() {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens() && currentUser.authorizedToWorkWithNotification();
+    }
+
+    async clearStorage() {
+        const alert = await this.alertController.create({
+            message: 'Deleting ALL data of this app?',
+            buttons: [
+                {
+                    text: 'No',
+                    handler: () => {
+                        alert.dismiss();
+                        return false;
+                    }
+                }, {
+                    text: 'Yes',
+                    handler: () => {
+                        alert.dismiss(true);
+                        return false;
+                    }
+                }
+            ]
+        });
+        alert.onDidDismiss().then((detail: OverlayEventDetail) => {
+            if (detail.data) {
+                this.backendService.clearStorage();
+            }
+        });
+        await alert.present();
+    }
 }
+

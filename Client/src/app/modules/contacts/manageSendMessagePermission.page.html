@@ -1,0 +1,45 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="submit()">
+                <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Manage permissions of message group</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-list lines="full">
+        <ion-item>
+            <ion-label class="ion-margin-start ion-text-wrap">Parent group: {{addSubTopicSetting.topicName}}</ion-label>
+        </ion-item>
+
+        <ion-item>
+            <ion-label class="ion-margin-start ion-text-wrap">{{addSubTopicSetting.description}}</ion-label>
+            <ion-toggle class="ion-margin-end" slot="end" [color]="addSubTopicSetting.permissionFlag ? 'medium' : 'light'"
+                        [(ngModel)]="addSubTopicSetting.permissionFlag"
+                        (ngModelChange)="toggleAddSubTopicSettingClicked()"></ion-toggle>
+        </ion-item>
+
+
+        <ion-item>
+            <ion-label class="ion-margin-start ion-text-wrap">{{sendMessageToAllSubTopicSetting.description}}</ion-label>
+            <ion-toggle class="ion-margin-end" slot="end" [color]="sendMessageToAllSubTopicSetting.permissionFlag ? 'medium' : 'light'"
+                        [(ngModel)]="sendMessageToAllSubTopicSetting.permissionFlag"
+                        (ngModelChange)="toggleSendMessageToAllSubTopicSettingClicked()"></ion-toggle>
+        </ion-item>
+
+        <ion-item *ngFor="let item of sendMessageToEachTopicPermissions">
+            <ion-label class="ion-margin-start ion-padding-start ion-text-wrap">{{item.topicName}}</ion-label>
+            <ion-toggle *ngIf="!sendMessageToAllSubTopicSetting.permissionFlag"
+                        class="ion-margin-end"
+                        slot="end"
+                        [color]="item.permissionFlag ? 'medium' : 'light'"
+                        [(ngModel)]="item.permissionFlag"
+                        (ngModelChange)="toggleCanSendMessageSubTopicClicked(item)"></ion-toggle>
+        </ion-item>
+
+    </ion-list>
+
+</ion-content>

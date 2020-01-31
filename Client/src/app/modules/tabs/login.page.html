@@ -24,7 +24,7 @@
         </ion-item>
         <ion-item>
             <ion-input placeholder="Password" [type]="showPassword ? 'text' : 'password'" clearOnEdit="false" required="true" [(ngModel)]="password"></ion-input>
-            <button (click)="onPasswordToggle()" ion-button clear small item-end icon-only><ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon></button>
+            <button (click)="onPasswordToggle()" ion-button clear small item-end icon-only><ion-icon [name]="showPassword ? 'eye' : 'eye-off'"></ion-icon></button>
         </ion-item>
 
         <ion-toolbar>

@@ -1,9 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {NGXLogger} from 'ngx-logger';
+import {AlertController, ModalController} from '@ionic/angular';
 
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {BackendService} from '../../services/backend.service';
 import {Contact} from '../../model/contact.model';
+import {ContactModal} from './contact.modal';
 
 @Component({
     selector: 'contacts',
@@ -18,7 +20,10 @@ export class ContactsPage implements OnInit {
     contacts: Contact[] = [];
 
     constructor(private logger: NGXLogger,
-                private fcm: MyFirebaseMsgService, private backendService: BackendService) {
+                private modalController: ModalController,
+                private alertController: AlertController,
+                private fcm: MyFirebaseMsgService,
+                private backendService: BackendService) {
     }
 
     ngOnInit(): void {
@@ -60,4 +65,70 @@ export class ContactsPage implements OnInit {
         }, 200);
     }
 
+    canManageUsers() {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens() && currentUser.authorizedToManageUsers();
+    }
+
+    canAddNewUsers() {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens() && currentUser.canAddNewUsers();
+        // return true;
+    }
+
+    canUpdateUsers() {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens() && currentUser.canUpdateUsers();
+        // return true;
+    }
+
+    async addUser() {
+        await this.addOrEditUser({ id: null,
+            expanded: false,
+            title: null,
+            name: '',
+            phone: '',
+            email: '',
+            authorization: {}
+        });
+    }
+
+    async editUser(contact: Contact, event) {
+        this.logger.info(`Editing contact ${contact.name}`);
+        event.stopPropagation();
+        await this.addOrEditUser(contact);
+    }
+
+    async addOrEditUser(contact: Contact) {
+        const modal = await this.modalController.create({
+            component: ContactModal,
+            componentProps: {
+                'contact': contact
+            }
+        });
+        modal.onDidDismiss().then((resp: any) => {
+            if (resp !== null) {
+                this.logger.debug('The response:', resp);
+                if (resp['data'] != null) {
+                    const tmpContact = resp['data'];
+                    this.logger.debug('Contact updated/edited:', tmpContact);
+                    if (!tmpContact.id) {
+                        tmpContact.id = tmpContact.email;
+                        this.contacts.push(tmpContact);
+                    } else {
+                        for (let index = 0; index < this.contacts.length; index++) {
+                            if (this.contacts[index].id === tmpContact.id) {
+                                this.contacts.splice(index, 1, tmpContact);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        await modal.present();
+    }
+
 }
+
+

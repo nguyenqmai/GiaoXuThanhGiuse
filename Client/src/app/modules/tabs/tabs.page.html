@@ -14,8 +14,12 @@
             <ion-icon name="contacts"></ion-icon>
         </ion-tab-button>
 
-        <ion-tab-button tab="setting">
-            <ion-icon name="options"></ion-icon>
+<!--        <ion-tab-button tab="setting">-->
+<!--            <ion-icon name="settings"></ion-icon>-->
+        <ion-tab-button>
+            <ion-icon name="log-in" *ngIf="!hasValidAuthorizedUser()" (click)="showLoginModal()"></ion-icon>
+            <ion-icon name="timer" *ngIf="hasValidAuthorizedUser()" (click)="logout()"></ion-icon>
+            <ion-badge *ngIf="hasValidAuthorizedUser() && getMinutesLeft() > 0" style="position: absolute">{{getMinutesLeft()}}</ion-badge>
         </ion-tab-button>
     </ion-tab-bar>
 

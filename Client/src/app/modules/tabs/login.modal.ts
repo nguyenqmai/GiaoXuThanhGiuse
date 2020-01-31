@@ -1,7 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {ModalController} from '@ionic/angular';
-import {TopicNode} from '../../model/topicnode.model';
 import {BackendService} from '../../services/backend.service';
 
 @Component({

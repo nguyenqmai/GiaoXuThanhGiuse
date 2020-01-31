@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {ModalController} from '@ionic/angular';
-import {TopicNode} from '../../model/topicnode.model';
+import {TopicNode} from '../../../model/topicnode.model';
 
 @Component({
     templateUrl: 'sendNotification.page.html',
@@ -27,3 +27,4 @@ export class SendNotificationModal {
         return this.modalController.dismiss({'title': this.title, 'body': this.body});
     }
 }
+

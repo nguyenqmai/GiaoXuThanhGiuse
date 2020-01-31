@@ -3,7 +3,7 @@ import {ModalController} from '@ionic/angular';
 import {NGXLogger} from 'ngx-logger';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {MyNotification} from '../../model/fcmnotification.model';
-import {SubscribeSettingModal} from './subscribeSetting.modal';
+import {SubscribeSettingModal} from './topics/subscribeSetting.modal';
 
 
 @Component({
@@ -44,24 +44,6 @@ export class NotificationsPage implements OnInit {
         }, 1000);
     }
 
-    public async options() {
-        this.logger.debug(`Add topic dialog for group `);
-
-        const modal = await this.modalController.create({
-            component: SubscribeSettingModal,
-            componentProps: {
-            }
-        });
-        modal.onDidDismiss().then((resp: any) => {
-            if (resp !== null) {
-                this.logger.debug('The response:', resp);
-                if (resp['data'] != null) {
-                    this.logger.debug('New topic created: ', resp['data']);
-                }
-            }
-        });
-        await modal.present();
-    }
 
     onSearchInput(event) {
         // this.logger.debug(`entering text [${event.detail.data}]`);
@@ -149,4 +131,24 @@ export class NotificationsPage implements OnInit {
             this.logger.warn('Notification.refreshAllNotifications(): catch error: ', error);
         }
     }
+
+    async manageTopicsAndMessages() {
+        this.logger.debug(`Add topic dialog for group `);
+
+        const modal = await this.modalController.create({
+            component: SubscribeSettingModal,
+            componentProps: {
+            }
+        });
+        modal.onDidDismiss().then((resp: any) => {
+            if (resp !== null) {
+                this.logger.debug('The response:', resp);
+                if (resp['data'] != null) {
+                    this.logger.debug('New topic created: ', resp['data']);
+                }
+            }
+        });
+        await modal.present();
+    }
+
 }

@@ -2,6 +2,7 @@ package com.themais.firebaseserver.web;
 
 
 import com.themais.firebaseserver.model.BaseMessage;
+import com.themais.firebaseserver.model.TopicGroup;
 import com.themais.firebaseserver.model.TopicNode;
 import com.themais.firebaseserver.service.FireStorageService;
 import com.themais.firebaseserver.service.NotificationService;
@@ -10,8 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by nguyenqmai on 2/5/2019.
@@ -30,6 +30,28 @@ public class NotificationController {
     @GetMapping("/topicNames/")
     List<String> getAllAvailableTopicNames() {
         return fireStorageService.getAllAvailableTopicNames();
+    }
+
+    @GetMapping("/topicGroups/")
+    Collection<TopicGroup> getAllAvailableTopicGroups() {
+        Map<String, TopicGroup> ret = new HashMap<>();
+        List<TopicNode> allTopics = fireStorageService.getAllAvailableTopics();
+        allTopics.stream().forEach(topicNode -> {
+            if (topicNode.getParentId() != null)
+                return;
+            ret.put(topicNode.getId(), new TopicGroup(topicNode.getId(), topicNode.getVietnameseName(), topicNode.getEnglishName(), new ArrayList<>()));
+        });
+
+        allTopics.stream().forEach(topicNode -> {
+            if (topicNode.getParentId() == null)
+                return;
+
+            TopicGroup group = ret.get(topicNode.getParentId());
+            if (group != null) {
+                group.addTopicNode(topicNode);
+            }
+        });
+        return ret.values();
     }
 
     @GetMapping("/topics/")

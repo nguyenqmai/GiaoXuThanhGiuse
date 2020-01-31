@@ -1,0 +1,23 @@
+<ion-header translucent>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="submit()">
+                <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Permissions to manage user-accounts</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+    <ion-list>
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+
+        <ion-item *ngFor="let item of permissionsToggles; let i = index">
+            <ion-label class="ion-text-wrap">{{item.description}}</ion-label>
+            <ion-toggle class="ion-margin-end" slot="end" [color]="item.permissionFlag ? 'medium' : 'light'"
+                        [(ngModel)]="item.permissionFlag"
+                        (ngModelChange)="toggleClicked(item.permission)"></ion-toggle>
+        </ion-item>
+
+    </ion-list>
+</ion-content>

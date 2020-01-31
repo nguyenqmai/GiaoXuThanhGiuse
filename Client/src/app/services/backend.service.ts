@@ -23,6 +23,8 @@ export class BackendService {
     private URL_PREFIX: string;
     private myAuthorizedUser: MyUser;
     private timerHandler: any;
+    private minutesLeft = 0;
+    private countDownHandler: any;
 
     constructor(private logger: NGXLogger, private http: HttpClient, private storage: Storage) {
     }
@@ -33,6 +35,10 @@ export class BackendService {
 
     public updateUrlPrefix(url: string) {
         this.URL_PREFIX = url;
+    }
+
+    public getMinutesLeft(): number {
+        return this.minutesLeft;
     }
 
     public setAuthorizedUser(myAuthorizedUser: MyUser) {
@@ -46,6 +52,16 @@ export class BackendService {
             const timeLeft = (expTime) ? expTime - (Date.now() / 1000) : -1;
             if (timeLeft > 0) {
                 this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} will expire in ${timeLeft} seconds.`);
+                this.minutesLeft = Math.floor(timeLeft / 60);
+                this.countDownHandler = setInterval(() => {
+                    if (this.minutesLeft <= 0) {
+                        clearInterval(this.countDownHandler);
+                        return;
+                    }
+                    this.logger.info(`Counting down to token expire time ${this.minutesLeft}`);
+                    this.minutesLeft = this.minutesLeft - 1;
+                }, 60 * 1000);
+
                 this.timerHandler = setInterval(() => {
                     this.logger.info(`Token for user ${this.myAuthorizedUser.userEmail} has just expired. Logout`);
                     this.setAuthorizedUser(null);
@@ -86,6 +102,10 @@ export class BackendService {
 
     public getAllContacts(): Observable<Contact[]> {
         return this.http.get<Contact[]>(`${this.URL_PREFIX}/rest/contacts/`);
+    }
+
+    public upsertContact(contact: Contact): Observable<boolean> {
+        return this.http.post<boolean>(`${this.URL_PREFIX}/rest/contacts/`, contact);
     }
 
     public getEventInfo(eventId: string): Observable<EventInfo> {
@@ -137,6 +157,10 @@ export class BackendService {
         }
     }
 
+    public getAllAvailableTopicGroups(): Observable<TopicGroup[]> {
+        return this.http.get<TopicGroup[]>(`${this.URL_PREFIX}/rest/notifications/topicGroups/`);
+    }
+
     public sendNotification(topic: TopicNode, title: string, body: string): Observable<string> {
         const msg = {
             'title': title,
@@ -152,7 +176,6 @@ export class BackendService {
         return this.http.get<MyNotification[]>(
             `${this.URL_PREFIX}/rest/notifications/messages?sentTime=${lastSyncTime}&status=${status}&topics=${topics}`);
     }
-
 
     public async getSubscribedToTopics(): Promise<TopicNode[]> {
         const ret: TopicNode[] = [];
@@ -173,7 +196,7 @@ export class BackendService {
         return this.storage.get(SUBSCRIPTIONS_KEY);
     }
 
-    public async saveCurrentSubscriptions(topicGroups: Map<String, TopicGroup>) {
+    public async saveCurrentSubscriptions(topicGroups: Map<string, TopicGroup>) {
         const data: TopicGroup[] = [];
         topicGroups.forEach((group, idKey, m) => {
             data.push(group);

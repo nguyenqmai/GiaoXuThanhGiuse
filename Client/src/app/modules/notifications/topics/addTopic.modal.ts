@@ -1,8 +1,8 @@
 import {Component, Input} from '@angular/core';
 import {ModalController} from '@ionic/angular';
-import {TopicGroup} from '../../model/topicgroup.model';
-import {BackendService} from '../../services/backend.service';
-import {TopicNode} from '../../model/topicnode.model';
+import {TopicGroup} from '../../../model/topicgroup.model';
+import {BackendService} from '../../../services/backend.service';
+import {TopicNode} from '../../../model/topicnode.model';
 
 @Component({
     templateUrl: 'addTopic.page.html',
@@ -51,3 +51,4 @@ export class AddTopicModal {
         });
     }
 }
+

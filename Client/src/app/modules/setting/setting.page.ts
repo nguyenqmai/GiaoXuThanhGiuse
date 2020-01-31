@@ -1,12 +1,9 @@
 import {Component, OnInit} from '@angular/core';
-import {ModalController, NavParams} from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
 import { NGXLogger } from 'ngx-logger';
+
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {BackendService} from '../../services/backend.service';
-import {TopicNode} from '../../model/topicnode.model';
-import {TopicGroup} from '../../model/topicgroup.model';
-import {LoginModal} from './login.modal';
-import {MyUser} from '../../model/MyUser.model';
 
 @Component({
     selector: 'app-setting',
@@ -25,6 +22,7 @@ export class SettingPage implements OnInit {
 
     constructor(private logger: NGXLogger,
                 private modalController: ModalController,
+                private alertController: AlertController,
                 private fcm: MyFirebaseMsgService,
                 private backendService: BackendService) {
     }
@@ -41,40 +39,7 @@ export class SettingPage implements OnInit {
         this.refreshCount = 0;
     }
 
-    public clearStorage() {
-        this.backendService.clearStorage();
-    }
 
-    hasValidAuthorizedUser() {
-        const currentUser = this.backendService.getAuthorizedUser();
-        return (currentUser != null && currentUser.getExpireTime() > Date.now());
-    }
-
-    public async showLoginModal() {
-
-        const modal = await this.modalController.create({
-            component: LoginModal,
-            componentProps: {
-            }
-        });
-        modal.onDidDismiss().then((response: any) => {
-            if (response && response['data'] &&
-                response['data']['userEmail'] &&
-                response['data']['idToken'] && response['data']['accessToken']) {
-                    this.logger.debug('The response:', response);
-                    this.backendService.setAuthorizedUser(
-                        new MyUser(response['data']['userEmail'],
-                            response['data']['idToken'],
-                            response['data']['accessToken']));
-            }
-        });
-        await modal.present();
-
-    }
-
-    public logout() {
-        this.backendService.setAuthorizedUser(null);
-    }
 
     doRefresh(event) {
         this.logger.debug('Begin async operation');

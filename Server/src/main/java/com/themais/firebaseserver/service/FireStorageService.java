@@ -208,7 +208,7 @@ public class FireStorageService {
 
     public boolean upsertContactInfo(ContactInfo contactInfo) {
         try {
-            firestore.collection(MyCollections.contacts.name()).document().set(contactInfo).get();
+            firestore.collection(MyCollections.contacts.name()).document(contactInfo.getEmail()).set(contactInfo).get();
             return true;
         } catch (Exception e) {
             return false;

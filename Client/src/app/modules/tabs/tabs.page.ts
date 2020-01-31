@@ -1,6 +1,13 @@
-import {ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
+import {Component, NgZone, OnInit} from '@angular/core';
+import {OverlayEventDetail} from '@ionic/core';
+import {AlertController, ModalController} from '@ionic/angular';
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {NGXLogger} from 'ngx-logger';
+import {LoginModal} from './login.modal';
+import {MyUser} from '../../model/MyUser.model';
+
+import {BackendService} from '../../services/backend.service';
+
 
 @Component({
     selector: 'app-tabs',
@@ -13,7 +20,10 @@ export class TabsPage implements OnInit {
     nextTab = '';
 
     constructor(private logger: NGXLogger,
+                private modalController: ModalController,
+                private alertController: AlertController,
                 private fcm: MyFirebaseMsgService,
+                private backendService: BackendService,
                 private ngZone: NgZone) {
     }
 
@@ -42,4 +52,60 @@ export class TabsPage implements OnInit {
         this.logger.info(`ionTabsWillChange to  ${this.nextTab}`);
     }
 
+
+    hasValidAuthorizedUser(): boolean {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens();
+    }
+
+    public async showLoginModal() {
+        const modal = await this.modalController.create({
+            component: LoginModal,
+            componentProps: {
+            }
+        });
+        modal.onDidDismiss().then((response: any) => {
+            if (response && response['data'] &&
+                response['data']['userEmail'] &&
+                response['data']['idToken'] && response['data']['accessToken']) {
+                this.logger.debug('The response:', response);
+                this.backendService.setAuthorizedUser(
+                    new MyUser(response['data']['userEmail'],
+                        response['data']['idToken'],
+                        response['data']['accessToken']));
+            }
+        });
+        await modal.present();
+    }
+
+    async logout() {
+        const alert = await this.alertController.create({
+            message: 'Sign-out of your account?',
+            buttons: [
+                {
+                    text: 'No',
+                    handler: () => {
+                        alert.dismiss();
+                        return false;
+                    }
+                }, {
+                    text: 'Yes',
+                    handler: () => {
+                        alert.dismiss(true);
+                        return false;
+                    }
+                }
+            ]
+        });
+        alert.onDidDismiss().then((detail: OverlayEventDetail) => {
+            if (detail.data) {
+                this.backendService.setAuthorizedUser(null);
+            }
+        });
+        await alert.present();
+    }
+
+    public getMinutesLeft(): number {
+        return this.backendService.getMinutesLeft();
+    }
 }

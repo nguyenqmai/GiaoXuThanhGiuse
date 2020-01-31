@@ -1,0 +1,75 @@
+<ion-header translucent>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="cancel()">
+                <ion-icon slot="icon-only" name="arrow-round-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title *ngIf="contact.id">Update User Information</ion-title>
+        <ion-title *ngIf="!contact.id">Add New User</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+    <ion-list>
+        <ion-item>
+            <ion-textarea *ngIf="failedReason != null" color="danger"
+                          autoGrow="true"
+                          rows="3"
+                          [(ngModel)]="failedReason"
+                          placeholder=""></ion-textarea>
+        </ion-item>
+
+        <ion-item *ngIf="waiting"><ion-spinner></ion-spinner></ion-item>
+        <div *ngIf="!waiting">
+        <ion-item>
+            <ion-label position="stacked">Title</ion-label>
+            <ion-input required="true" [(ngModel)]="contact.title"></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Name<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="contact.name"></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Phone<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="contact.phone"></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">email<ion-text color="danger">*</ion-text></ion-label>
+            <ion-input required="true" [(ngModel)]="contact.email"></ion-input>
+        </ion-item>
+
+        <ion-item detail="false" (click)="manageOtherUserAccounts()">
+            <ion-label class="ion-text-wrap">Manage other users</ion-label>
+            <ion-icon name="options" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item-group>
+            <ion-item>
+<!--                <ion-icon slot="end" [name]="sendMessagePermissionsToggle ? 'arrow-dropdown' : 'arrow-dropright'" (click)="toggleSendMessagePermissions()"></ion-icon>-->
+                <ion-label class="ion-text-wrap">Manage send message permissions</ion-label>
+            </ion-item>
+
+<!--            <ion-list *ngIf="sendMessagePermissionsToggle" lines="none">-->
+            <ion-list lines="none">
+                <ion-item *ngFor="let group of topicGroups" detail="false" (click)="manageSendMessagePermissions(group)">
+                    <ion-label class="ion-margin-start ion-padding-start ion-text-wrap">Group: {{group.englishName}}</ion-label>
+                    <ion-icon name="options" slot="end"></ion-icon>
+                </ion-item>
+            </ion-list>
+        </ion-item-group>
+
+        <ion-toolbar>
+            <ion-buttons slot="end">
+                <ion-button [disabled]="!hasRequiredData()" (click)="save()">
+                    <ion-icon slot="icon-only" name="checkmark-circle-outline"></ion-icon>
+                </ion-button>
+            </ion-buttons>
+        </ion-toolbar>
+
+        </div>
+    </ion-list>
+
+</ion-content>

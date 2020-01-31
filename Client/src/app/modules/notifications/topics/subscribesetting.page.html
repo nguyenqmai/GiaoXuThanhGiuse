@@ -32,7 +32,7 @@
         <ion-item-group *ngFor="let group of getTopicGroups()">
             <ion-item>
                 <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
-                          (click)="tongleGroupExpansion(group)"></ion-icon>
+                          (click)="toggleGroupExpansion(group)"></ion-icon>
                 <ion-label class="ion-text-wrap">{{group.englishName}}</ion-label>
                 <ion-icon *ngIf="group.expanded && canAddTopic(group)"
                           slot="end" name="add" (click)="addTopic(group)"></ion-icon>
@@ -47,7 +47,7 @@
 
                     <ion-toggle class="ion-margin-end" slot="end" [color]="item.subscribed ? 'medium' : 'light'"
                                 [(ngModel)]="item.subscribed"
-                                (ngModelChange)="checkboxItemClicked(item)"></ion-toggle>
+                                (ngModelChange)="toggleClicked(item)"></ion-toggle>
                 </ion-item>
             </div>
         </ion-item-group>
