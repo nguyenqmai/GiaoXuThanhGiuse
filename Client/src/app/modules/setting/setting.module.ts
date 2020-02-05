@@ -4,6 +4,9 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {SettingPage} from './setting.page';
+import {LoginModal} from './login.modal';
+import {ResetPasswordModal} from './resetPassword.modal';
+import {ChangePasswordModal} from './changePassword.modal';
 
 @NgModule({
     imports: [
@@ -12,8 +15,8 @@ import {SettingPage} from './setting.page';
         FormsModule,
         RouterModule.forChild([{path: '', component: SettingPage}]),
     ],
-    declarations: [SettingPage],
-    entryComponents: []
+    declarations: [SettingPage, LoginModal, ResetPasswordModal, ChangePasswordModal],
+    entryComponents: [LoginModal, ResetPasswordModal, ChangePasswordModal]
 })
 export class SettingPageModule {
 }

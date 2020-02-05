@@ -3,6 +3,7 @@ package com.themais.firebaseserver.service;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.UserRecord;
 import com.themais.firebaseserver.model.ContactInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by nguyenqmai on 12/23/2019.
@@ -33,7 +35,6 @@ public class AuthService {
     }
 
     public String exchangeIdTokenForAccessToken(String userEmail, String idToken) throws Exception {
-
         FirebaseToken decodeToken = firebaseAuth.verifyIdToken(idToken, true);
         if (!decodeToken.isEmailVerified())
             throw new FirebaseAuthException("EMAIL_NOT_VERIFIED", "User must verify their email first");
@@ -41,5 +42,28 @@ public class AuthService {
             throw new FirebaseAuthException("EMAIL_NOT_MATCH", "Provided email doesn't match with email in IdToken");
 
         return buildNewJWT(decodeToken.getEmail());
+    }
+
+    public boolean hasUserWithEmail(String email) throws Exception {
+        try {
+            UserRecord userRecord = firebaseAuth.getUserByEmail(email);
+            return true;
+        } catch (FirebaseAuthException e) {
+            if ("user-not-found".equalsIgnoreCase(e.getErrorCode())) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    public boolean createUser(ContactInfo contactInfo) throws Exception {
+            UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                    .setEmail(contactInfo.getEmail())
+                    .setPassword(String.valueOf(Objects.hashCode(Math.random())))
+                    .setDisplayName(contactInfo.getName())
+                    .setDisabled(false);
+
+            UserRecord userRecord = firebaseAuth.createUser(request);
+            return true;
     }
 }

@@ -16,22 +16,33 @@
         </ion-refresher-content>
     </ion-refresher>
 
-    <ion-list lines="full">
+    <ion-list lines="none">
+        <div *ngIf="!hasValidAuthorizedUser()" >
+        <ion-item (click)="showLoginModal()">
+            <ion-label slot="start" class="ion-text-wrap">Login</ion-label>
+            <ion-icon slot="end" name="log-in" ></ion-icon>
+        </ion-item>
+        <ion-item (click)="sendResetPasswordEmail()">
+            <ion-label slot="start" class="ion-text-wrap">Reset password</ion-label>
+            <ion-icon slot="end" name="refresh" ></ion-icon>
+        </ion-item>
+        </div>
 
-<!--        <ion-item detail="true" (click)="manageTopicsAndMessages()">-->
-        <ion-item *ngIf="canManageTopicsAndNotifications()" (click)="manageTopicsAndMessages()">
-            <ion-label slot="start" class="ion-text-wrap">Manage topics/ Send messages</ion-label>
-            <ion-icon slot="end" name="chatbubbles"></ion-icon>
-            <ion-icon slot="end" name="switch"></ion-icon>
+        <div *ngIf="hasValidAuthorizedUser()" >
+        <ion-item (click)="logout()">
+            <ion-label slot="start" class="ion-text-wrap">Logout</ion-label>
+            <ion-icon slot="end" name="log-out"></ion-icon>
         </ion-item>
 
-
-        <ion-item *ngIf="!canManageTopicsAndNotifications()" (click)="manageTopicsAndMessages()">
-            <ion-label slot="start" class="ion-text-wrap">Manage subscription</ion-label>
-            <ion-icon slot="end" name="switch"></ion-icon>
+        <ion-item (click)="changePasswordModal()">
+            <ion-label slot="start" class="ion-text-wrap">Change password</ion-label>
+            <ion-icon slot="end" name="swap"></ion-icon>
         </ion-item>
+        </div>
 
-
+        <ion-item></ion-item>
+        <ion-item></ion-item>
+        <ion-item></ion-item>
         <ion-item (click)="clearStorage()">
             <ion-label slot="start" color="danger" class="ion-text-wrap">Delete ALL data of this app</ion-label>
             <ion-icon slot="end"

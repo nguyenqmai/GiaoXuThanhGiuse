@@ -30,7 +30,7 @@ export class BackendService {
     }
 
     public authorizeUser(userEmail: string, idToken: any): Observable<any> {
-        return this.http.post(`${this.URL_PREFIX}/rest/users/${userEmail}/authorization`, idToken);
+        return this.http.post(`${this.URL_PREFIX}/rest/contacts/${userEmail}/authorization`, idToken);
     }
 
     public updateUrlPrefix(url: string) {

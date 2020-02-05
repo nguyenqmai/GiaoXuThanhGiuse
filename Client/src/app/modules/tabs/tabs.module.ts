@@ -7,7 +7,6 @@ import {IonicModule} from '@ionic/angular';
 
 import {TabsPageRoutingModule} from './tabs.router.module';
 import {TabsPage} from './tabs.page';
-import {LoginModal} from './login.modal';
 import {environment} from '../../../environments/environment';
 
 @NgModule({
@@ -19,8 +18,8 @@ import {environment} from '../../../environments/environment';
         AngularFireModule.initializeApp(environment.firebase),
         AngularFireAuthModule,
     ],
-    declarations: [TabsPage, LoginModal],
-    entryComponents: [LoginModal]
+    declarations: [TabsPage],
+    entryComponents: []
 })
 export class TabsPageModule {
 }
