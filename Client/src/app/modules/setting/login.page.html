@@ -29,6 +29,10 @@
 
         <ion-toolbar>
             <ion-buttons slot="end">
+                <ion-button [disabled]="!fingerprintAIOAvailable" (click)="showFingerprintAIO()">
+                    <ion-icon slot="icon-only" name="finger-print"></ion-icon>
+                </ion-button>
+
                 <ion-button [disabled]="!hasRequiredData()" (click)="login()">
                     <ion-icon slot="icon-only" name="checkmark-circle-outline"></ion-icon>
                 </ion-button>

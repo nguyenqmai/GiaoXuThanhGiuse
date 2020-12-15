@@ -1,11 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {NGXLogger} from 'ngx-logger';
 import {AlertController, ModalController} from '@ionic/angular';
+import {OverlayEventDetail} from '@ionic/core';
 
 import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {BackendService} from '../../services/backend.service';
 import {Contact} from '../../model/contact.model';
 import {ContactModal} from './contact.modal';
+
 
 @Component({
     selector: 'contacts',
@@ -83,7 +85,7 @@ export class ContactsPage implements OnInit {
     }
 
     async addUser() {
-        await this.addOrEditUser({ id: null,
+        await this.manageUser({ id: null,
             expanded: false,
             title: null,
             name: '',
@@ -96,10 +98,10 @@ export class ContactsPage implements OnInit {
     async editUser(contact: Contact, event) {
         this.logger.info(`Editing contact ${contact.name}`);
         event.stopPropagation();
-        await this.addOrEditUser(contact);
+        await this.manageUser(contact);
     }
 
-    async addOrEditUser(contact: Contact) {
+    async manageUser(contact: Contact) {
         const modal = await this.modalController.create({
             component: ContactModal,
             componentProps: {
@@ -110,18 +112,14 @@ export class ContactsPage implements OnInit {
             if (resp !== null) {
                 this.logger.debug('The response:', resp);
                 if (resp['data'] != null) {
-                    const tmpContact = resp['data'];
-                    this.logger.debug('Contact updated/edited:', tmpContact);
-                    if (!tmpContact.id) {
-                        tmpContact.id = tmpContact.email;
-                        this.contacts.push(tmpContact);
-                    } else {
-                        for (let index = 0; index < this.contacts.length; index++) {
-                            if (this.contacts[index].id === tmpContact.id) {
-                                this.contacts.splice(index, 1, tmpContact);
-                                break;
-                            }
-                        }
+                    if (resp['data']['delete'] && resp['data']['delete'].length > 0) {
+                        this.updateContacts(resp['data']['delete'], null);
+                    }
+                    if (resp['data']['update']) {
+                        this.updateContacts(resp['data']['update'].id, resp['data']['update']);
+                    }
+                    if (resp['data']['refresh'] && resp['data']['refresh'] === true) {
+                        this.loadContacts();
                     }
                 }
             }
@@ -129,6 +127,18 @@ export class ContactsPage implements OnInit {
         await modal.present();
     }
 
+    private updateContacts(id: string, newContact: Contact) {
+        for (let index = 0; index < this.contacts.length; index++) {
+            if (this.contacts[index].id === id) {
+                if (newContact) {
+                    this.contacts.splice(index, 1, newContact);
+                } else {
+                    this.contacts.splice(index, 1);
+                }
+                break;
+            }
+        }
+    }
 }
 
 

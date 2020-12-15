@@ -27,12 +27,12 @@ public class NotificationController {
     @Autowired
     NotificationService notificationService;
 
-    @GetMapping("/topicNames/")
+    @GetMapping("/topicNames")
     List<String> getAllAvailableTopicNames() {
         return fireStorageService.getAllAvailableTopicNames();
     }
 
-    @GetMapping("/topicGroups/")
+    @GetMapping("/topicGroups")
     Collection<TopicGroup> getAllAvailableTopicGroups() {
         Map<String, TopicGroup> ret = new HashMap<>();
         List<TopicNode> allTopics = fireStorageService.getAllAvailableTopics();
@@ -54,12 +54,12 @@ public class NotificationController {
         return ret.values();
     }
 
-    @GetMapping("/topics/")
+    @GetMapping("/topics")
     List<TopicNode> getAllAvailableTopics() {
         return fireStorageService.getAllAvailableTopics();
     }
 
-    @PostMapping("/topics/")
+    @PostMapping("/topics")
     boolean addNewTopic(@RequestBody TopicNode newTopic) {
         return fireStorageService.upsertTopic(newTopic);
     }

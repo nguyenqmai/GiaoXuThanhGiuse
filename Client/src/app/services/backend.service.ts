@@ -13,7 +13,7 @@ import {MyNotification} from '../model/fcmnotification.model';
 const LAST_SYNC_TIME_KEY = 'LAST_SYNC_TIME';
 const SUBSCRIPTIONS_KEY = 'MY_SUBSCRIPTIONS';
 const URL_PREFIX_KEY = 'URL_PREFIX';
-const AVAILABLE_URL_PREFIXS: string[]  = ['http://localhost:4200', 'http://192.168.10.11:8080', 'http://69.221.129.172:8080'];
+const AVAILABLE_URL_PREFIXS: string[]  = ['http://localhost:4200', 'http://192.168.10.11:8080', 'http://192.168.10.40:8080', 'http://69.221.129.172:8080'];
 
 
 @Injectable({
@@ -101,11 +101,15 @@ export class BackendService {
     }
 
     public getAllContacts(): Observable<Contact[]> {
-        return this.http.get<Contact[]>(`${this.URL_PREFIX}/rest/contacts/`);
+        return this.http.get<Contact[]>(`${this.URL_PREFIX}/rest/contacts`);
     }
 
     public upsertContact(contact: Contact): Observable<boolean> {
-        return this.http.post<boolean>(`${this.URL_PREFIX}/rest/contacts/`, contact);
+        return this.http.post<boolean>(`${this.URL_PREFIX}/rest/contacts`, contact);
+    }
+
+    public deleteContact(contact: Contact): Observable<boolean> {
+        return this.http.delete<boolean>(`${this.URL_PREFIX}/rest/contacts/${contact.id}`);
     }
 
     public getEventInfo(eventId: string): Observable<EventInfo> {
@@ -125,11 +129,11 @@ export class BackendService {
     }
 
     public getAllAvailableTopics(): Observable<TopicNode[]> {
-        return this.http.get<TopicNode[]>(`${this.URL_PREFIX}/rest/notifications/topics/`);
+        return this.http.get<TopicNode[]>(`${this.URL_PREFIX}/rest/notifications/topics`);
     }
 
     public addNewTopic(topic: TopicNode): Observable<boolean> {
-        return this.http.post<boolean>(`${this.URL_PREFIX}/rest/notifications/topics/`, topic);
+        return this.http.post<boolean>(`${this.URL_PREFIX}/rest/notifications/topics`, topic);
     }
 
     public buildTopicGroups(topics: TopicNode[]): Map<string, TopicGroup> {
@@ -158,7 +162,7 @@ export class BackendService {
     }
 
     public getAllAvailableTopicGroups(): Observable<TopicGroup[]> {
-        return this.http.get<TopicGroup[]>(`${this.URL_PREFIX}/rest/notifications/topicGroups/`);
+        return this.http.get<TopicGroup[]>(`${this.URL_PREFIX}/rest/notifications/topicGroups`);
     }
 
     public sendNotification(topic: TopicNode, title: string, body: string): Observable<string> {

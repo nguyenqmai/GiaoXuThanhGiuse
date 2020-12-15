@@ -23,6 +23,8 @@ import {MyFirebaseMsgService} from './services/myFirebaseMsgService';
 
 import { AbcComponent} from './components/abc/abc.component';
 import { ExpandableComponent} from './components/expandable/expandable.component';
+import {FingerprintAIO} from '@ionic-native/fingerprint-aio/ngx';
+import {ImagePicker} from '@ionic-native/image-picker/ngx';
 
 
 @NgModule({
@@ -43,6 +45,8 @@ import { ExpandableComponent} from './components/expandable/expandable.component
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
         {provide: HttpBackend, useClass: NativeHttpFallback, deps: [Platform, NativeHttpBackend, HttpXhrBackend]},
         Firebase,
+        FingerprintAIO,
+        ImagePicker,
         BackendService,
         MyFirebaseMsgService,
         {provide: APP_INITIALIZER, useFactory: initApp, deps: [BackendService], multi: true }

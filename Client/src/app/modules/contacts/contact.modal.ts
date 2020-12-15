@@ -1,12 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
 import {NGXLogger} from 'ngx-logger';
+import {OverlayEventDetail} from '@ionic/core';
 
 import {Contact} from '../../model/contact.model';
 import {BackendService} from '../../services/backend.service';
 import {ManageOtherUsersModal} from './manageOtherUsers.modal';
 import {TopicGroup} from '../../model/topicgroup.model';
 import {ManageSendMessagePermissionModal} from './manageSendMessagePermission.modal';
+
+
 
 
 @Component({
@@ -22,6 +25,7 @@ export class ContactModal implements OnInit {
     topicGroups = [];
 
     constructor(private logger: NGXLogger,
+                private alertController: AlertController,
                 private modalController: ModalController,
                 private backendService: BackendService) {
     }
@@ -85,10 +89,6 @@ export class ContactModal implements OnInit {
         await modal.present();
     }
 
-    // toggleSendMessagePermissions() {
-    //     this.sendMessagePermissionsToggle = !this.sendMessagePermissionsToggle;
-    // }
-
     private hasPermissionForTopic(name: string, permission: string): boolean {
         return this.contact.authorization &&
             this.contact.authorization[name] &&
@@ -148,13 +148,60 @@ export class ContactModal implements OnInit {
         await modal.present();
     }
 
+
+    canDeleteUser() {
+        const currentUser = this.backendService.getAuthorizedUser();
+        return currentUser && currentUser.hasValidTokens() && currentUser.canDeleteUsers();
+    }
+
+    async deleteUser() {
+        const alert = await this.alertController.create({
+            message: 'Delete everything related to this user?',
+            buttons: [
+                {
+                    text: 'No',
+                    handler: () => {
+                        alert.dismiss();
+                        return false;
+                    }
+                }, {
+                    text: 'Yes',
+                    handler: () => {
+                        alert.dismiss(true);
+                        return false;
+                    }
+                }
+            ]
+        });
+        alert.onDidDismiss().then((detail: OverlayEventDetail) => {
+            if (detail.data) {
+                this.waiting = true;
+                this.failedReason = null;
+                this.backendService.deleteContact(this.contact).subscribe(
+                resp => {
+                    this.waiting = false;
+                    return this.modalController.dismiss({delete : this.contact.id});
+                    },
+                error => {
+                    this.failedReason = error;
+                    this.waiting = false;
+                });
+            }
+        });
+        await alert.present();
+    }
+
     public save() {
         this.failedReason = null;
         this.waiting = true;
 
         this.backendService.upsertContact(this.contact).subscribe(result => {
             this.waiting = false;
-            return this.modalController.dismiss(this.contact);
+            if (this.contact.id) {
+                return this.modalController.dismiss({update: this.contact});
+            } else {
+                return this.modalController.dismiss({refresh: true});
+            }
         },
         (error) => {
             this.failedReason = error;

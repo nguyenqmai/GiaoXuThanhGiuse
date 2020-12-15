@@ -7,6 +7,12 @@
         </ion-buttons>
         <ion-title *ngIf="contact.id">Update User Information</ion-title>
         <ion-title *ngIf="!contact.id">Add New User</ion-title>
+        <ion-buttons *ngIf="contact.id" slot="end">
+            <ion-button (click)="deleteUser()">
+                <ion-icon name="trash" slot="icon-only" color="danger"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>

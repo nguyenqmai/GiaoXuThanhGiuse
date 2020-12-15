@@ -7,8 +7,9 @@ import {MyFirebaseMsgService} from '../../services/myFirebaseMsgService';
 import {BackendService} from '../../services/backend.service';
 import {LoginModal} from './login.modal';
 import {MyUser} from '../../model/MyUser.model';
-import {ChangePasswordModal} from "./changePassword.modal";
-import {ResetPasswordModal} from "./resetPassword.modal";
+import {ChangePasswordModal} from './changePassword.modal';
+import {ResetPasswordModal} from './resetPassword.modal';
+import {AdvanceModal} from './advance.modal';
 
 
 @Component({
@@ -18,10 +19,7 @@ import {ResetPasswordModal} from "./resetPassword.modal";
 })
 
 
-
 export class SettingPage implements OnInit {
-    firstRefreshTime: number;
-    refreshCount = 0;
     backendServerUrls: string[];
     selectedBackEndUrl: string;
 
@@ -33,16 +31,7 @@ export class SettingPage implements OnInit {
                 private backendService: BackendService) {
     }
 
-    async ngOnInit() {
-        this.backendServerUrls = this.backendService.getAvailableUrlPrefixes();
-        this.selectedBackEndUrl = this.backendService.getCurrentUrlPrefix();
-        this.firstRefreshTime = Date.now();
-        this.refreshCount = 0;
-    }
-
-    public switchBackendServerUrl() {
-        this.backendService.updateUrlPrefix(this.selectedBackEndUrl);
-        this.refreshCount = 0;
+    ngOnInit() {
     }
 
     hasValidAuthorizedUser(): boolean {
@@ -119,25 +108,23 @@ export class SettingPage implements OnInit {
         await alert.present();
     }
 
-    public getMinutesLeft(): number {
+    async showAdvanceOptions() {
+        const modal = await this.modalController.create({
+            component: AdvanceModal,
+            componentProps: {
+            }
+        });
+        modal.onDidDismiss().then((response: any) => {
+        });
+        await modal.present();
+    }
+
+    getMinutesLeft(): number {
         return this.backendService.getMinutesLeft();
     }
 
     doRefresh(event) {
         this.logger.debug('Begin async operation');
-        setTimeout(() => {
-            event.target.complete();
-            if (this.refreshCount === 0 || (Date.now() - this.firstRefreshTime) > 10000) {
-                this.firstRefreshTime = Date.now();
-                this.refreshCount = 0;
-            }
-
-            this.refreshCount += 1;
-            this.logger.debug('Async operation has ended. refreshCount = ', this.refreshCount);
-        }, 1000);
     }
 
-    showAdvanceOptions() {
-        this.refreshCount = (this.refreshCount + 1) % 4;
-    }
 }

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,13 +27,16 @@ public class AuthService {
     @Autowired
     FireStorageService fireStorageService;
 
-    public String buildNewJWT(String userIdEmail) throws Exception {
-        ContactInfo user = fireStorageService.getContactWithIdEmail(userIdEmail);
+    public String buildNewJWT(String userEmail) throws Exception {
+        ContactInfo user = fireStorageService.getContactWithUid(getUidByEmail(userEmail));
         Map<String, Object> developerClaims = user == null ? Collections.emptyMap() : user.getAuthorization();
-        return firebaseAuth.createCustomToken(userIdEmail, developerClaims != null ? developerClaims : Collections.emptyMap());
+        return firebaseAuth.createCustomToken(userEmail, developerClaims != null ? developerClaims : Collections.emptyMap());
     }
 
     public String exchangeIdTokenForAccessToken(String userEmail, String idToken) throws Exception {
+        if (!hasUserWithEmail(userEmail))
+            throw new FirebaseAuthException("EMAIL_NOT_MATCH", "Provided email doesn't match with any user");
+
         FirebaseToken decodeToken = firebaseAuth.verifyIdToken(idToken, true);
         if (!decodeToken.isEmailVerified())
             throw new FirebaseAuthException("EMAIL_NOT_VERIFIED", "User must verify their email first");
@@ -42,6 +44,11 @@ public class AuthService {
             throw new FirebaseAuthException("EMAIL_NOT_MATCH", "Provided email doesn't match with email in IdToken");
 
         return buildNewJWT(decodeToken.getEmail());
+    }
+
+    public String getUidByEmail(String email) throws Exception {
+        UserRecord userRecord = firebaseAuth.getUserByEmail(email);
+        return userRecord.getUid();
     }
 
     public boolean hasUserWithEmail(String email) throws Exception {
@@ -56,14 +63,18 @@ public class AuthService {
         }
     }
 
-    public boolean createUser(ContactInfo contactInfo) throws Exception {
+    public String createUser(ContactInfo contactInfo) throws Exception {
             UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                     .setEmail(contactInfo.getEmail())
                     .setPassword(String.valueOf(Objects.hashCode(Math.random())))
                     .setDisplayName(contactInfo.getName())
                     .setDisabled(false);
 
-            UserRecord userRecord = firebaseAuth.createUser(request);
-            return true;
+            return firebaseAuth.createUser(request).getUid();
+    }
+
+    public boolean deleteUser(String uuid) throws Exception {
+        firebaseAuth.deleteUser(uuid);
+        return true;
     }
 }

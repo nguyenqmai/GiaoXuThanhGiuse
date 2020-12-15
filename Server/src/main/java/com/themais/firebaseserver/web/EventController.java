@@ -66,7 +66,7 @@ public class EventController {
 //        return fireStorageService.deleteEventInfo(EventType.confession.name(), confessionEventId);
 //    }
 
-    @GetMapping("/")
+    @GetMapping("")
     List<EventInfo> getEventInfos(@RequestParam(required = false, name = "tag") String tag) {
         return fireStorageService.getEventInfos(tag);
     }
@@ -76,7 +76,7 @@ public class EventController {
         return fireStorageService.getEventInfo(eventId);
     }
 
-    @PostMapping("/")
+    @PostMapping("")
     boolean upsertEventInfo(@RequestBody EventInfo officeHour) {
         return fireStorageService.upsertEventInfo(officeHour);
     }

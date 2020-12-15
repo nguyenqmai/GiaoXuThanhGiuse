@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -201,23 +202,33 @@ public class FireStorageService {
         }
     }
 
-    public ContactInfo getContactWithIdEmail(String userIdEmail) throws Exception {
-        ApiFuture<DocumentSnapshot> query = firestore.collection(MyCollections.contacts.name()).document(userIdEmail).get();
+    public ContactInfo getContactWithEmail(String userEmail) throws Exception {
+        ApiFuture<QuerySnapshot> future =
+                firestore.collection(MyCollections.contacts.name()).whereEqualTo("email", userEmail).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        if (documents.size() == 1) {
+            return documents.get(0).toObject(ContactInfo.class);
+        }
+        throw new NoSuchElementException("Cannot find user with provided email, or email not unique");
+    }
+
+    public ContactInfo getContactWithUid(String uid) throws Exception {
+        ApiFuture<DocumentSnapshot> query = firestore.collection(MyCollections.contacts.name()).document(uid).get();
         return query.get().toObject(ContactInfo.class);
     }
 
     public boolean upsertContactInfo(ContactInfo contactInfo) {
         try {
-            firestore.collection(MyCollections.contacts.name()).document(contactInfo.getEmail()).set(contactInfo).get();
+            firestore.collection(MyCollections.contacts.name()).document(contactInfo.getId()).set(contactInfo).get();
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public boolean deleteContactInfo(String contactInfoId) {
+    public boolean deleteContactInfo(String uid) {
         try {
-            firestore.collection(MyCollections.contacts.name()).document(contactInfoId).delete();
+            firestore.collection(MyCollections.contacts.name()).document(uid).delete();
             return true;
         } catch (Exception e) {
             return false;

@@ -51,8 +51,8 @@ public class NotificationService {
 
         Message.Builder builder = Message.builder().setTopic(msg.getTopic());
 
-        if (msg.getTitle() != null && msg.getBody() != null)
-            builder.setNotification(new Notification(msg.getTitle(), msg.getBody()));
+//        if (msg.getTitle() != null && msg.getBody() != null)
+//            builder.setNotification(new Notification(msg.getTitle(), msg.getBody()));
 
 
         builder.putData("id", msg.getId());

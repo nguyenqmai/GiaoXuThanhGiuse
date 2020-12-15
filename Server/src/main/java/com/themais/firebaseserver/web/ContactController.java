@@ -29,18 +29,20 @@ public class ContactController {
     @Autowired
     private AuthService authService;
 
-    @GetMapping("/")
+    @GetMapping("")
     Collection<ContactInfo> getAllContacts() {
         return fireStorageService.getAllContacts().values();
     }
 
-    @PostMapping("/")
+    @PostMapping("")
     boolean upsertContactInfo(@RequestBody ContactInfo contactInfo) {
         try {
             if (contactInfo.getAuthorization() != null &&
-                    contactInfo.getAuthorization().size() > 0 &&
+//                    contactInfo.getAuthorization().size() > 0 &&
+                    contactInfo.getId() == null &&
                     !authService.hasUserWithEmail(contactInfo.getEmail())) {
-                authService.createUser(contactInfo);
+                String uid = authService.createUser(contactInfo);
+                contactInfo.setId(uid);
             }
         } catch (Exception e) {
             logger.warn("Failed to create user {}", contactInfo.getEmail(), e);
@@ -48,11 +50,28 @@ public class ContactController {
         return fireStorageService.upsertContactInfo(contactInfo);
     }
 
-    @GetMapping("/{contactInfoId}/")
-    boolean deleteContact(@PathVariable(name = "contactInfoId") String contactInfoId) {
-        return fireStorageService.deleteContactInfo(contactInfoId);
+    @PatchMapping("")
+    boolean syncContactIdWithUserId() {
+        for (ContactInfo contactInfo : getAllContacts()) {
+            try {
+                if (!contactInfo.getId().equalsIgnoreCase(contactInfo.getEmail())) {
+                    continue;
+                }
+                contactInfo.setId(authService.getUidByEmail(contactInfo.getEmail()));
+                fireStorageService.upsertContactInfo(contactInfo);
+                fireStorageService.deleteContactInfo(contactInfo.getEmail());
+            } catch (Exception e) {
+                logger.warn("Failed to sync ContactId {}, email {} with UserId", contactInfo.getId(), contactInfo.getEmail(), e);
+            }
+        }
+        return true;
     }
 
+    @DeleteMapping("/{uid}")
+    boolean deleteContact(@PathVariable(name = "uid") String uid) throws Exception {
+        authService.deleteUser(uid);
+        return fireStorageService.deleteContactInfo(uid);
+    }
 
     @PostMapping("/{userEmail}/authorization")
     Map<String, String> authorizeUserFromIdToken(@PathVariable String userEmail, @RequestBody String idToken) {

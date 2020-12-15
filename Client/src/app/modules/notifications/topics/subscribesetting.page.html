@@ -20,15 +20,14 @@
     </ion-refresher>
 
     <ion-list lines="full">
-        <ion-item color="light">
-            <ion-label *ngIf="!authorizedToWorkWithNotification() && !canSendNotification(item)" slot="start" color="dark">
+        <ion-item-divider color="light">
+            <ion-label *ngIf="!authorizedToWorkWithNotification()" slot="start" color="dark">
                 Notification subscriptions
             </ion-label>
             <ion-label *ngIf="authorizedToWorkWithNotification()" slot="start" color="dark">
                 Add Topic/Send Notification
             </ion-label>
-        </ion-item>
-
+        </ion-item-divider>
         <ion-item-group *ngFor="let group of getTopicGroups()">
             <ion-item>
                 <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
@@ -51,6 +50,35 @@
                 </ion-item>
             </div>
         </ion-item-group>
+
+        <ion-item-divider color="light">
+            <ion-label slot="start" color="dark">
+                Download earlier notifications
+            </ion-label>
+        </ion-item-divider>
+        <ion-item-group *ngFor="let group of getTopicGroups()">
+            <ion-item>
+                <ion-icon slot="start" [name]="group.expanded ? 'arrow-dropdown' : 'arrow-dropright'"
+                          (click)="toggleGroupExpansion(group)"></ion-icon>
+                <ion-label class="ion-text-wrap">{{group.englishName}}</ion-label>
+                <ion-icon *ngIf="group.expanded && canAddTopic(group)"
+                          slot="end" name="add" (click)="addTopic(group)"></ion-icon>
+            </ion-item>
+
+            <div *ngIf="group.expanded">
+                <ion-item *ngFor="let item of group.subtopics">
+                    <ion-label class="ion-margin-start ion-padding-start ion-text-wrap">{{item.englishName}}</ion-label>
+                    <ion-icon *ngIf="canSendNotification(item)"
+                              class="ion-margin-end" slot="end"
+                              name="chatbubbles" (click)="sendMessageToTopic(item)"></ion-icon>
+
+                    <ion-toggle class="ion-margin-end" slot="end" [color]="item.subscribed ? 'medium' : 'light'"
+                                [(ngModel)]="item.subscribed"
+                                (ngModelChange)="toggleClicked(item)"></ion-toggle>
+                </ion-item>
+            </div>
+        </ion-item-group>
+
     </ion-list>
 
 </ion-content>
